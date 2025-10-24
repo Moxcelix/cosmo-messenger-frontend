@@ -1,10 +1,15 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const Login = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -21,12 +26,15 @@ const Login = () => {
       })
 
       if (!response.ok) {
-        throw new Error('Ошибка авторизации')
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Ошибка авторизации')
       }
 
-      const data = await response.json()
-      console.log('Успешный вход:', data)
-      // Здесь будет токен в localStorage или контекст
+      const authData = await response.json()
+      
+      login(authData)
+      
+      navigate('/chats')
       
     } catch (err) {
       setError(err.message)
