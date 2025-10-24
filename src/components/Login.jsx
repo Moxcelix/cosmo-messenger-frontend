@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom' 
 import { useAuth } from '../context/AuthContext'
+import PasswordInput from './PasswordInput' 
 
 const Login = () => {
   const [username, setUsername] = useState('')
@@ -47,7 +48,7 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
       <div className="bg-white p-8 rounded-2xl shadow-2xl w-96">
         <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">
-          Войти в Cosmo Messenger
+          Войти в Cosmo
         </h1>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -69,13 +70,12 @@ const Login = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Пароль
             </label>
-            <input
-              type="password"
+            <PasswordInput
+              name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Введите пароль"
-              required
+              required={true}
             />
           </div>
 
@@ -95,7 +95,8 @@ const Login = () => {
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Нет аккаунта? <a href="#" className="text-blue-500 hover:text-blue-600">Зарегистрироваться</a></p>
+            <p>Нет аккаунта? <Link to="/register" className="text-blue-500 hover:text-blue-600">Зарегистрироваться</Link></p>
+          
         </div>
       </div>
     </div>
