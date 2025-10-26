@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
     const [accessToken, setAccessToken] = useState(null)
     const [refreshToken, setRefreshToken] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [showSessionExpired, setShowSessionExpired] = useState(false)
 
     const isRefreshing = useRef(false)
     const refreshPromise = useRef(null)
@@ -37,13 +38,8 @@ export const AuthProvider = ({ children }) => {
             return refreshPromise.current
         }
 
-        if (!refreshToken) {
-            logout()
-            return null
-        }
-
-        if (isTokenExpired(refreshToken)) {
-            logout()
+        if (!refreshToken || isTokenExpired(refreshToken)) {
+            setShowSessionExpired(true)
             return null
         }
 
@@ -60,8 +56,7 @@ export const AuthProvider = ({ children }) => {
                 })
 
                 if (!response.ok) {
-                    const errorText = await response.text()
-                    throw new Error(`Refresh failed: ${response.status} - ${errorText}`)
+                    throw new Error('Refresh failed')
                 }
 
                 const data = await response.json()
@@ -72,26 +67,23 @@ export const AuthProvider = ({ children }) => {
 
                 return newAccessToken
             } catch (error) {
-                logout()
+                setShowSessionExpired(true)
                 return null
             } finally {
                 isRefreshing.current = false
                 refreshPromise.current = null
             }
-        })
+        })()
+
         return refreshPromise.current
     }
-    const authFetch = async (url, options = {}) => {
 
+    const authFetch = async (url, options = {}) => {
         let currentToken = accessToken
 
-        if (isTokenExpired(currentToken)) {
-            try {
-                currentToken = await refreshAccessToken()
-                if (!currentToken) {
-                    throw new Error('Failed to refresh token')
-                }
-            } catch (error) {
+        if (!currentToken || isTokenExpired(currentToken)) {
+            currentToken = await refreshAccessToken()
+            if (!currentToken) {
                 throw new Error('Session expired')
             }
         }
@@ -108,17 +100,11 @@ export const AuthProvider = ({ children }) => {
         let response = await fetch(url, config)
 
         if (response.status === 401) {
-            try {
-                const newToken = await refreshAccessToken()
-                if (newToken) {
-                    config.headers.Authorization = `Bearer ${newToken}`
-                    response = await fetch(url, config)
-                } else {
-                    logout()
-                    throw new Error('Session expired')
-                }
-            } catch (error) {
-                logout()
+            const newToken = await refreshAccessToken()
+            if (newToken) {
+                config.headers.Authorization = `Bearer ${newToken}`
+                response = await fetch(url, config)
+            } else {
                 throw new Error('Session expired')
             }
         }
@@ -131,6 +117,7 @@ export const AuthProvider = ({ children }) => {
 
         setAccessToken(access_token)
         setRefreshToken(refresh_token)
+        setShowSessionExpired(false)
 
         const userData = decodeJWT(access_token)
         setUser(userData)
@@ -144,6 +131,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null)
         setAccessToken(null)
         setRefreshToken(null)
+        setShowSessionExpired(false) 
 
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
@@ -171,13 +159,13 @@ export const AuthProvider = ({ children }) => {
             const decoded = JSON.parse(atob(payload))
             const expiryTime = decoded.exp * 1000
             const currentTime = Date.now()
-            const isExpired = expiryTime < currentTime
-
-            return isExpired
+            return expiryTime - 30000 < currentTime
         } catch (error) {
             return true
         }
     }
+
+    const isAuthenticated = !!accessToken && !isTokenExpired(accessToken)
 
     const value = {
         user,
@@ -186,9 +174,11 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         loading,
-        isAuthenticated: !!accessToken && !isTokenExpired(accessToken),
+        isAuthenticated,
         authFetch,
         refreshAccessToken,
+        showSessionExpired,
+        setShowSessionExpired,
     }
 
     return (
