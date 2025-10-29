@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useChatListWebSocket } from '../hooks/useChatListWebSocket'
 import ProtectedRoute from './ProtectedRoute'
 
 const ChatList = () => {
-    const { authFetch, logout, user, loading: authLoading } = useAuth()
+    const { authFetch, logout, user, loading: authLoading, accessToken } = useAuth()
     const navigate = useNavigate()
     const [chats, setChats] = useState([])
     const [loading, setLoading] = useState(false)
@@ -14,6 +15,64 @@ const ChatList = () => {
 
     const isMounted = useRef(true)
     const initialLoadDone = useRef(false)
+
+    useChatListWebSocket(accessToken, {
+        onChatUpdate: useCallback((updatedChat) => {
+            console.log('🔄 Updating chat in list:', updatedChat)
+            setChats(prev => prev.map(chat => 
+                chat.id === updatedChat.id ? { ...chat, ...updatedChat } : chat
+            ))
+        }, []),
+
+        onNewMessage: useCallback((messageData) => {
+            console.log('📨 New message received in chat list:', messageData)
+            
+            setChats(prev => {
+                const chatIndex = prev.findIndex(chat => chat.id === messageData.chat_id)
+                if (chatIndex === -1) {
+                    // Если чата нет в списке, возможно нужно его добавить
+                    // или просто игнорировать, т.к. он может быть на другой странице
+                    return prev
+                }
+
+                const updatedChats = [...prev]
+                const chat = updatedChats[chatIndex]
+                
+                // Обновляем последнее сообщение
+                const updatedChat = {
+                    ...chat,
+                    last_message: {
+                        id: messageData.id,
+                        content: messageData.content,
+                        sender: messageData.sender,
+                        timestamp: messageData.timestamp
+                    },
+                    // Увеличиваем счетчик непрочитанных, если это не наше сообщение
+                    unread_count: messageData.sender.id !== user?.id 
+                        ? (chat.unread_count || 0) + 1 
+                        : chat.unread_count
+                }
+
+                // Перемещаем обновленный чат в начало списка
+                updatedChats.splice(chatIndex, 1)
+                updatedChats.unshift(updatedChat)
+
+                return updatedChats
+            })
+        }, [user]),
+
+        onChatCreated: useCallback((newChat) => {
+            console.log('🆕 Adding new chat to list:', newChat)
+            setChats(prev => [newChat, ...prev])
+            setTotal(prev => prev + 1)
+        }, []),
+
+        onChatDeleted: useCallback((deletedChat) => {
+            console.log('🗑️ Removing chat from list:', deletedChat)
+            setChats(prev => prev.filter(chat => chat.id !== deletedChat.id))
+            setTotal(prev => prev - 1)
+        }, [])
+    })
 
     const logoutHandler = () => {
         logout()

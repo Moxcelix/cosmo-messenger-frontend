@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useChatWebSocket } from '../hooks/useChatWebSocket'
 import ProtectedRoute from './ProtectedRoute'
 
 const ChatPage = () => {
     const { chatId } = useParams()
     const navigate = useNavigate()
-    const { authFetch, user, loading: authLoading } = useAuth()
+    const { authFetch, user, loading: authLoading, accessToken } = useAuth()
 
     const [chat, setChat] = useState(null)
     const [messages, setMessages] = useState([])
@@ -24,6 +25,25 @@ const ChatPage = () => {
     const scrollPositionRef = useRef(0)
     const messagesHeightRef = useRef(0)
     const loadThreshold = 200
+
+    const { sendMessage: sendWsMessage, isConnected } = useChatWebSocket(
+        accessToken,
+        chatId,
+        {
+            onNewMessage: (message) => {
+                if (message.chat_id == chatId) {
+                    setMessages(prev => [...prev, message])
+                    setTimeout(() => scrollToBottom(), 100)
+                }
+            },
+            onUserTyping: (data) => {
+                console.log('User is typing:', data)
+            },
+            onMessageEdited: (data) => {
+                console.log('Message edited:', data)
+            }
+        }
+    )
 
     useEffect(() => {
         isMounted.current = true
@@ -113,7 +133,6 @@ const ChatPage = () => {
         const { scrollTop, scrollHeight, clientHeight } = e.target
         const isNearTop = scrollTop <= loadThreshold
 
-
         if (isNearTop && hasOlder && !loading) {
             const oldestMessage = messages[0]
             if (oldestMessage) {
@@ -128,20 +147,37 @@ const ChatPage = () => {
 
         setSending(true)
         try {
-            const response = await authFetch(`/api/v1/messages/chat/${chatId}`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    content: newMessage.trim()
+            if (isConnected) {
+                const success = sendWsMessage(newMessage.trim())
+                if (success) {
+                    setNewMessage('')
+                } else {
+                    throw new Error('WebSocket not connected')
+                }
+            } else {
+                console.log('Using HTTP fallback for message sending')
+                const response = await authFetch(`/api/v1/messages/chat/${chatId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: newMessage.trim()
+                    })
                 })
-            })
 
-            if (!response.ok) throw new Error(response.Error)
+                if (!response.ok) {
+                    const errorText = await response.text()
+                    throw new Error(errorText || 'HTTP send failed')
+                }
 
-            setNewMessage('')
-            loadMessages()
+                setNewMessage('')
+                loadMessages()
+            }
 
         } catch (error) {
-            console.error('Ошибка отправки:', error)
+            console.error('Send message error:', error)
+            alert(`Ошибка отправки: ${error.message}`)
         } finally {
             setSending(false)
         }
@@ -298,11 +334,11 @@ const ChatPage = () => {
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder="Введите сообщение..."
                                     className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    disabled={sending}
+                                    disabled={sending || !isConnected}
                                 />
                                 <button
                                     type="submit"
-                                    disabled={!newMessage.trim() || sending}
+                                    disabled={!newMessage.trim() || sending || !isConnected}
                                     className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-6 py-2 rounded-full font-medium transition-colors"
                                 >
                                     {sending ? '...' : 'Отправить'}
