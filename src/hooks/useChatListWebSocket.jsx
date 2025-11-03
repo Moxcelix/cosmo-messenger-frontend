@@ -3,13 +3,14 @@ import { useWebSocket } from './useWebSocket'
 
 export const useChatListWebSocket = (accessToken, callbacks = {}) => {
     const {
-        onChatUpdate, 
-        onNewMessage,  
-        onChatCreated, 
-        onChatDeleted
+        onChatUpdate,
+        onNewMessage,
+        onChatCreated,
+        onChatDeleted,
+        onUserTyping,
     } = callbacks
 
-    const wsUrl = accessToken 
+    const wsUrl = accessToken
         ? `ws://localhost:4000/ws/?token=${accessToken}`
         : null
 
@@ -33,17 +34,21 @@ export const useChatListWebSocket = (accessToken, callbacks = {}) => {
                 console.log('Chat deleted:', data.payload)
                 onChatDeleted?.(data.payload)
                 break
+            case 'user_typing':
+                console.log('User typing:', data.payload)
+                onUserTyping?.(data.payload)
+                break
             default:
                 console.log('Unknown chat list message type:', data.type)
         }
-    }, [onChatUpdate, onNewMessage, onChatCreated, onChatDeleted])
+    }, [onChatUpdate, onNewMessage, onChatCreated, onChatDeleted, onUserTyping])
 
     const unsubscribeRef = useRef()
     useEffect(() => {
         if (wsUrl) {
             unsubscribeRef.current = onMessage(handleMessage)
         }
-        
+
         return () => {
             if (unsubscribeRef.current) {
                 unsubscribeRef.current()

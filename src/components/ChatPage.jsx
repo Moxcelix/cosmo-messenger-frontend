@@ -2,7 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useChatWebSocket } from '../hooks/useChatWebSocket'
+import { useTyping } from '../hooks/useTyping'
 import ProtectedRoute from './ProtectedRoute'
+import TypingIndicator from './TypingIndicator'
+import TypingDots from './TypingDots'
 
 const ChatPage = () => {
     const { chatId } = useParams()
@@ -26,7 +29,7 @@ const ChatPage = () => {
     const messagesHeightRef = useRef(0)
     const loadThreshold = 200
 
-    const { sendMessage: sendWsMessage, isConnected } = useChatWebSocket(
+    const { sendMessage: sendWsMessage, sendTypingIndicator, isConnected } = useChatWebSocket(
         accessToken,
         chatId,
         {
@@ -37,7 +40,12 @@ const ChatPage = () => {
                 }
             },
             onUserTyping: (data) => {
-                console.log('User is typing:', data)
+                scrollToBottom()
+                updateTypingUsers(
+                    data.user_id,
+                    data.user_name,
+                    data.is_typing
+                )
             },
             onMessageEdited: (data) => {
                 console.log('Message edited:', data)
@@ -45,10 +53,32 @@ const ChatPage = () => {
         }
     )
 
+    const {
+        typingUsers,
+        startTyping,
+        stopTyping,
+        updateTypingUsers,
+        cleanup
+    } = useTyping(sendTypingIndicator, user?.id)
+
+    const handleMessageChange = useCallback((e) => {
+        const value = e.target.value
+        setNewMessage(value)
+
+        if (value.trim().length > 0) {
+            startTyping()
+            console.log('start typing')
+        } else {
+            stopTyping()
+            console.log('stop typing')
+        }
+    }, [startTyping, stopTyping])
+
     useEffect(() => {
         isMounted.current = true
         return () => {
             isMounted.current = false
+            cleanup()
         }
     }, [])
 
@@ -145,6 +175,8 @@ const ChatPage = () => {
         e.preventDefault()
         if (!newMessage.trim() || sending) return
 
+        stopTyping()
+
         setSending(true)
         try {
             if (isConnected) {
@@ -232,6 +264,7 @@ const ChatPage = () => {
     }
 
     const messageGroups = groupMessagesByDate(messages)
+    const isTyping = Object.keys(typingUsers).length > 0
 
     return (
         <ProtectedRoute>
@@ -253,7 +286,17 @@ const ChatPage = () => {
                                     {chat?.name || 'Загрузка...'}
                                 </h1>
                                 <p className="text-sm text-gray-500">
-                                    {chat?.type === 'direct' ? 'Личный чат' : 'Групповой чат'} • {total} сообщений
+                                    {isTyping ? (
+                                        <span>
+                                            {Object.values(typingUsers)[0]}
+                                            {Object.keys(typingUsers).length > 1 ? ' и другие' : ''} печатает
+                                            <TypingDots />
+                                        </span>
+                                    ) : (
+                                        <span>
+                                            {chat?.type === 'direct' ? 'Личный чат' : 'Групповой чат'} • {total} сообщений
+                                        </span>
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -316,6 +359,8 @@ const ChatPage = () => {
                                 </div>
                             ))}
 
+                            {/* <TypingIndicator typingUsers={typingUsers} /> */}
+
                             <div ref={messagesEndRef} />
 
                             {loading && !hasOlder && (
@@ -326,12 +371,14 @@ const ChatPage = () => {
                         </div>
 
                         {/* Форма отправки сообщения */}
+
                         <div className="bg-white border-t p-4">
                             <form onSubmit={sendMessage} className="flex space-x-4">
                                 <input
                                     type="text"
                                     value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    onChange={handleMessageChange}
+                                    onBlur={stopTyping} // Останавливаем при потере фокуса
                                     placeholder="Введите сообщение..."
                                     className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     disabled={sending || !isConnected}

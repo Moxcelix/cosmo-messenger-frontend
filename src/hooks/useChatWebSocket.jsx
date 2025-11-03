@@ -59,7 +59,6 @@ export const useChatWebSocket = (accessToken, chatId, callbacks = {}) => {
 
     const sendTypingIndicator = (isTyping) => {
         if (!chatId) return false
-
         return sendMessage({
             type: 'typing',
             payload: {
