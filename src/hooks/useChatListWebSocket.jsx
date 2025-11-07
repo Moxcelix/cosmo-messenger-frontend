@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useWebSocket } from './useWebSocket'
+import { useSound } from './useSound'
+import { getCurrentUserId } from '../utils/user'
 
 export const useChatListWebSocket = (accessToken, callbacks = {}) => {
     const {
@@ -10,8 +12,12 @@ export const useChatListWebSocket = (accessToken, callbacks = {}) => {
         onUserTyping,
     } = callbacks
 
+    const { playSound } = useSound()
+
+    const WS_URL = import.meta.env.VITE_WS_URL;
+
     const wsUrl = accessToken
-        ? `ws://localhost:4000/ws/?token=${accessToken}`
+        ? `${WS_URL}/ws/?token=${accessToken}`
         : null
 
     const { sendMessage, onMessage, isConnected } = useWebSocket(wsUrl)
@@ -23,6 +29,9 @@ export const useChatListWebSocket = (accessToken, callbacks = {}) => {
                 onChatUpdate?.(data.payload)
                 break
             case 'new_message':
+                if (data.payload.sender.id != getCurrentUserId()) {
+                    playSound()
+                }
                 console.log('New message for chat list:', data.payload)
                 onNewMessage?.(data.payload)
                 break

@@ -5,8 +5,8 @@ import PasswordInput from './PasswordInput'
 
 const Register = () => {
     const [formData, setFormData] = useState({
-        username: '',
-        name: '',
+        username: '',      
+        name: '',          
         password: '',
         confirmPassword: '',
         bio: ''
@@ -26,15 +26,16 @@ const Register = () => {
         })
     }
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword)
-    }
-
-    const toggleConfirmPasswordVisibility = () => {
-        setShowConfirmPassword(!showConfirmPassword)
+    const validateUsername = (username) => {
+        return /^[a-zA-Z0-9_]+$/.test(username)
     }
 
     const validateForm = () => {
+        if (!validateUsername(formData.username)) {
+            setError('Имя пользователя может содержать только латинские буквы, цифры и символ _')
+            return false
+        }
+
         if (formData.password !== formData.confirmPassword) {
             setError('Пароли не совпадают')
             return false
@@ -94,6 +95,8 @@ const Register = () => {
 
     const passwordsMatch = formData.password === formData.confirmPassword
     const hasConfirmPassword = formData.confirmPassword.length > 0
+    const isUsernameValid = validateUsername(formData.username)
+    const hasUsername = formData.username.length > 0
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-400 to-blue-600 flex items-center justify-center">
@@ -105,22 +108,37 @@ const Register = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Имя пользователя *
+                            Имя пользователя для входа *
                         </label>
                         <input
                             type="text"
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="Придумайте имя пользователя"
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                                hasUsername && !isUsernameValid 
+                                    ? 'border-red-500 focus:ring-red-500' 
+                                    : 'border-gray-300 focus:ring-green-500'
+                            }`}
+                            placeholder="Только латинские буквы и цифры"
                             required
                         />
+                        {hasUsername && !isUsernameValid && (
+                            <p className="text-red-500 text-xs mt-1">
+                                Можно использовать только a-z, 0-9 и _
+                            </p>
+                        )}
+                        {hasUsername && isUsernameValid && (
+                            <p className="text-green-500 text-xs mt-1">✓ Корректный формат</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">
+                            Это имя будет использоваться для входа в систему
+                        </p>
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Ваше имя *
+                            Ваше имя для отображения *
                         </label>
                         <input
                             type="text"
@@ -128,9 +146,12 @@ const Register = () => {
                             value={formData.name}
                             onChange={handleChange}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="Введите ваше имя"
+                            placeholder="Можно использовать русские буквы"
                             required
                         />
+                        <p className="text-xs text-gray-500 mt-1">
+                            Это имя будут видеть другие пользователи
+                        </p>
                     </div>
 
                     <div>
@@ -165,7 +186,7 @@ const Register = () => {
                             <p className="text-red-500 text-xs mt-1">Пароли не совпадают</p>
                         )}
                         {hasConfirmPassword && passwordsMatch && (
-                            <p className="text-green-500 text-xs mt-1">Пароли совпадают</p>
+                            <p className="text-green-500 text-xs mt-1">✓ Пароли совпадают</p>
                         )}
                     </div>
 
@@ -197,7 +218,7 @@ const Register = () => {
 
                     <button
                         type="submit"
-                        disabled={loading || (hasConfirmPassword && !passwordsMatch)}
+                        disabled={loading || !isUsernameValid || (hasConfirmPassword && !passwordsMatch)}
                         className="w-full bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
                     >
                         {loading ? 'Регистрация...' : 'Зарегистрироваться'}

@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import { useWebSocket } from './useWebSocket'
+import { useSound } from './useSound'
+import { getCurrentUserId } from '../utils/user'
 
 export const useChatWebSocket = (accessToken, chatId, callbacks = {}) => {
     const {
@@ -8,8 +10,12 @@ export const useChatWebSocket = (accessToken, chatId, callbacks = {}) => {
         onMessageEdited
     } = callbacks
 
+    const { playSound } = useSound()
+
+    const WS_URL = import.meta.env.VITE_WS_URL;
+
     const wsUrl = accessToken && chatId 
-        ? `ws://localhost:4000/ws/?token=${accessToken}`
+        ? `${WS_URL}/ws/?token=${accessToken}`
         : null
 
     const { sendMessage, onMessage, isConnected } = useWebSocket(wsUrl)
@@ -23,7 +29,9 @@ export const useChatWebSocket = (accessToken, chatId, callbacks = {}) => {
             console.log('Processing WebSocket message:', data.type)
             switch (data.type) {
                 case 'new_message':
-                    console.log('New message:', data.payload)
+                    if (data.payload.sender.id != getCurrentUserId()) {
+                        playSound()
+                    }
                     onNewMessage?.(data.payload)
                     break
                 case 'user_typing':
@@ -40,7 +48,7 @@ export const useChatWebSocket = (accessToken, chatId, callbacks = {}) => {
         })
 
         return unsubscribe
-    }, [wsUrl, onMessage, onNewMessage, onUserTyping, onMessageEdited])
+    }, [wsUrl, onMessage, onNewMessage, onUserTyping, onMessageEdited, playSound])
 
     const sendChatMessage = (content) => {
         if (!chatId) {

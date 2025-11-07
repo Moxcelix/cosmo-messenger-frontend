@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import { useChatListWebSocket } from '../hooks/useChatListWebSocket'
 import ChatListItem from './ChatListItem'
 import ProtectedRoute from './ProtectedRoute'
+import UserSearch from './UserSearch'
+import UserSearchResult from './UserSearchResult'
 
 const ChatList = () => {
     const { authFetch, logout, user, loading: authLoading, accessToken } = useAuth()
@@ -14,9 +16,12 @@ const ChatList = () => {
     const [page, setPage] = useState(1)
     const [total, setTotal] = useState(0)
     const [typingChats, setTypingChats] = useState({})
+    const [searchResult, setSearchResult] = useState(null)
+    const [showScrollTop, setShowScrollTop] = useState(false)
 
     const isMounted = useRef(true)
     const initialLoadDone = useRef(false)
+    const scrollContainerRef = useRef(null)
 
     useChatListWebSocket(accessToken, {
         onNewMessage: useCallback((messageData) => {
@@ -73,6 +78,23 @@ const ChatList = () => {
     const logoutHandler = () => {
         logout()
         navigate('/login')
+    }
+
+    const handleUserFound = (userData) => {
+        setSearchResult(userData)
+    }
+
+    const handleCloseSearchResult = () => {
+        setSearchResult(null)
+    }
+
+    const scrollToTop = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            })
+        }
     }
 
     useEffect(() => {
@@ -132,16 +154,23 @@ const ChatList = () => {
         const { scrollTop, scrollHeight, clientHeight } = e.target
         const isNearBottom = scrollHeight - scrollTop - clientHeight < 100
 
+        setShowScrollTop(scrollTop > 100)
+
         if (isNearBottom && hasMore && !loading && initialLoadDone.current) {
             loadChats(page + 1, true)
         }
     }, [hasMore, loading, page, loadChats])
 
+
     return (
         <ProtectedRoute>
-            <div className="h-screen flex flex-col bg-gradient-to-br from-purple-50 to-blue-50">
+            {/* Фиксированный градиентный фон */}
+            <div className="fixed inset-0 bg-gradient-to-br from-purple-50 to-blue-50 -z-10"></div>
+            
+            {/* Основной контейнер без прокрутки */}
+            <div className="h-screen flex flex-col relative overflow-hidden">
                 {/* Шапка */}
-                <div className="p-6 bg-white/80 backdrop-blur-sm border-b border-gray-200/60 flex justify-between items-center shadow-sm">
+                <div className="flex-shrink-0 p-6 bg-white/80 backdrop-blur-sm border-b border-gray-200/60 flex justify-between items-center shadow-sm relative z-10">
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-3">
                             <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
@@ -165,54 +194,87 @@ const ChatList = () => {
                     </button>
                 </div>
 
-                {/* Основной контент с ограничением ширины */}
-                <div className="flex-1 flex justify-center p-4">
-                    <div className="w-full max-w-2xl">
+                {/* Контейнер для контента с фиксированной высотой */}
+                <div className="flex-1 flex justify-center p-4 relative z-10 overflow-hidden">
+                    <div className="w-full max-w-2xl flex flex-col h-full">
+                        {/* Поиск пользователей */}
+                        <div className="flex-shrink-0">
+                            <UserSearch onUserFound={handleUserFound} />
+                        </div>
 
-                        {/* Список чатов */}
-                        <div
-                            className="overflow-y-auto h-full"
-                            onScroll={handleScroll}
-                        >
-                            {chats.length === 0 && !loading ? (
-                                <div className="flex flex-col items-center justify-center h-64 text-center bg-white/50 rounded-2xl backdrop-blur-sm">
-                                    <div className="w-24 h-24 bg-gradient-to-r from-purple-200 to-blue-200 rounded-full flex items-center justify-center mb-4">
-                                        <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                        </svg>
-                                    </div>
-                                    <div className="text-lg font-medium text-gray-600 mb-2">Чатов пока нет</div>
-                                    <div className="text-sm text-gray-500">Создайте новый чат чтобы начать общение</div>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {chats.map(chat => (
-                                        <ChatListItem key={chat.id} chat={chat} typingUsers={typingChats} />
-                                    ))}
-                                </div>
-                            )}
+                        {/* Результат поиска */}
+                        {searchResult && (
+                            <div className="flex-shrink-0">
+                                <UserSearchResult
+                                    user={searchResult}
+                                    onClose={handleCloseSearchResult}
+                                />
+                            </div>
+                        )}
 
-                            {loading && (
-                                <div className="flex justify-center p-8">
-                                    <div className="flex items-center space-x-3 text-gray-500">
-                                        <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                                        <span>Загрузка чатов...</span>
+                        {/* Контейнер для списка чатов с прокруткой */}
+                        <div className="flex-1 min-h-0"> 
+                            <div
+                                ref={scrollContainerRef}
+                                className="overflow-y-auto h-full"
+                                onScroll={handleScroll}
+                            >
+                                {chats.length === 0 && !loading && !searchResult ? (
+                                    <div className="flex flex-col items-center justify-center h-full text-center bg-white/50 rounded-2xl backdrop-blur-sm">
+                                        <div className="w-24 h-24 bg-gradient-to-r from-purple-200 to-blue-200 rounded-full flex items-center justify-center mb-4">
+                                            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                            </svg>
+                                        </div>
+                                        <div className="text-lg font-medium text-gray-600 mb-2">Чатов пока нет</div>
+                                        <div className="text-sm text-gray-500">
+                                            Начните общение - найдите пользователя выше
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                ) : (
+                                    <div className="space-y-3 pb-2"> 
+                                        {chats.map(chat => (
+                                            <ChatListItem key={chat.id} chat={chat} typingUsers={typingChats} />
+                                        ))}
+                                    </div>
+                                )}
+                                {loading && (
+                                    <div className="flex justify-center p-8">
+                                        <div className="flex items-center space-x-3 text-gray-500">
+                                            <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                                            <span>Загрузка чатов...</span>
+                                        </div>
+                                    </div>
+                                )}
 
-                            {!hasMore && chats.length > 0 && (
-                                <div className="text-center py-6 text-gray-400 border-t border-gray-200/60 mt-4">
-                                    <div className="flex items-center justify-center space-x-2">
-                                        <div className="w-4 h-px bg-gray-300"></div>
-                                        <span className="text-sm">Все чаты загружены</span>
-                                        <div className="w-4 h-px bg-gray-300"></div>
+                                {!hasMore && chats.length > 0 && (
+                                    <div className="text-center py-6 text-gray-400 border-t border-gray-200/60 mt-4">
+                                        <div className="flex items-center justify-center space-x-2">
+                                            <div className="w-4 h-px bg-gray-300"></div>
+                                            <span className="text-sm">Все чаты загружены</span>
+                                            <div className="w-4 h-px bg-gray-300"></div>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                {/* Кнопка "Наверх" */}
+                <button
+                    onClick={scrollToTop}
+                    className={`fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 ${
+                        showScrollTop 
+                            ? 'opacity-100 translate-y-0' 
+                            : 'opacity-0 translate-y-4 pointer-events-none'
+                    }`}
+                    aria-label="Прокрутить наверх"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                </button>
             </div>
         </ProtectedRoute>
     )

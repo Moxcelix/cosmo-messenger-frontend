@@ -6,9 +6,21 @@ export default defineConfig({
   server: {
     host: true,
     port: 3000,
+    optimizeDeps: {
+      exclude: ['.git/**']
+    },
+    server: {
+      hmr: {
+        overlay: false
+      }
+    },
+    allowedHosts: [
+      'cosmomessenger.ru',
+      'www.cosmomessenger.ru',
+    ],
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',  // твой бекенд
+        target: 'http://backend:4000',
         changeOrigin: true,
         secure: false,
       }
