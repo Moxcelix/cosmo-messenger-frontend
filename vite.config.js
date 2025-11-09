@@ -9,10 +9,8 @@ export default defineConfig({
     optimizeDeps: {
       exclude: ['.git/**']
     },
-    server: {
-      hmr: {
-        overlay: false
-      }
+    hmr: {
+      overlay: false
     },
     allowedHosts: [
       'cosmomessenger.ru',

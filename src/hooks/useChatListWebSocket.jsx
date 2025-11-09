@@ -23,6 +23,7 @@ export const useChatListWebSocket = (accessToken, callbacks = {}) => {
     const { sendMessage, onMessage, isConnected } = useWebSocket(wsUrl)
 
     const handleMessage = useCallback((data) => {
+        console.log(data);
         switch (data.type) {
             case 'chat_updated':
                 console.log('Chat updated:', data.payload)

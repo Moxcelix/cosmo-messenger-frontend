@@ -72,6 +72,42 @@ const ChatList = () => {
 
                 return newState
             })
+        }, []),
+        onChatCreated: useCallback((chatData) => {
+            setChats(prev => {
+                const existingChatIndex = prev.findIndex(chat => chat.id === chatData.id)
+                
+                if (existingChatIndex !== -1) {
+                    const updatedChats = [...prev]
+                    updatedChats[existingChatIndex] = chatData
+                    return updatedChats
+                } else {
+                    return [chatData, ...prev]
+                }
+            })
+            
+            setTotal(prev => prev + 1)
+        }, []),
+
+        onChatUpdate: useCallback((chatData) => {
+            setChats(prev => {
+                const chatIndex = prev.findIndex(chat => chat.id === chatData.id)
+                
+                if (chatIndex === -1) {
+                    return [chatData, ...prev]
+                }
+
+                const updatedChats = [...prev]
+                updatedChats[chatIndex] = chatData
+                
+                if (chatData.last_message && chatData.last_message.timestamp) {
+                    const currentChat = updatedChats[chatIndex]
+                    updatedChats.splice(chatIndex, 1)
+                    updatedChats.unshift(currentChat)
+                }
+                
+                return updatedChats
+            })
         }, [])
     })
 
@@ -232,7 +268,7 @@ const ChatList = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="space-y-3 pb-2"> 
+                                    <div className="space-y-3 pb-2"> {/* Добавил отступ снизу */}
                                         {chats.map(chat => (
                                             <ChatListItem key={chat.id} chat={chat} typingUsers={typingChats} />
                                         ))}
