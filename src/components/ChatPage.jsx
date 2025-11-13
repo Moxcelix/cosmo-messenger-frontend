@@ -34,7 +34,8 @@ const ChatPage = () => {
                 total={chat.total}
                 typingUsers={chat.typingUsers}
                 onBack={handleBack}
-                isDirect={false}
+                isDirect={chat.chat?.type=="direct"}
+                chatExists={chat.chatExists}
                 displayName={chat.chat?.name}
                 messages={chat.messages}
                 loading={chat.loading}
