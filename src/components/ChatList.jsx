@@ -13,8 +13,6 @@ const ChatList = () => {
     const [chats, setChats] = useState([])
     const [loading, setLoading] = useState(false)
     const [hasMore, setHasMore] = useState(true)
-    const [page, setPage] = useState(1)
-    const [total, setTotal] = useState(0)
     const [typingChats, setTypingChats] = useState({})
     const [searchResult, setSearchResult] = useState(null)
     const [showScrollTop, setShowScrollTop] = useState(false)
@@ -22,35 +20,76 @@ const ChatList = () => {
     const isMounted = useRef(true)
     const initialLoadDone = useRef(false)
     const scrollContainerRef = useRef(null)
+    const cursorRef = useRef(null) // Храним курсор для пагинации
+
+    // Функция для загрузки конкретного чата
+    const loadChat = useCallback(async (chatId) => {
+        try {
+            const response = await authFetch(`/api/v1/chats/${chatId}`)
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`)
+            }
+            const chatData = await response.json()
+            return chatData
+        } catch (error) {
+            console.error('Ошибка загрузки чата:', error)
+            return null
+        }
+    }, [authFetch])
 
     useChatListWebSocket(accessToken, {
-        onNewMessage: useCallback((messageData) => {
+        onNewMessage: useCallback(async (messageData) => {
             setChats(prev => {
                 const chatIndex = prev.findIndex(chat => chat.id === messageData.chat_id)
-                if (chatIndex === -1) return prev
+                
+                // Если чат есть в списке - обновляем его
+                if (chatIndex !== -1) {
+                    const updatedChats = [...prev]
+                    const chat = updatedChats[chatIndex]
 
-                const updatedChats = [...prev]
-                const chat = updatedChats[chatIndex]
+                    const updatedChat = {
+                        ...chat,
+                        last_message: {
+                            id: messageData.id,
+                            content: messageData.content,
+                            sender: messageData.sender,
+                            timestamp: messageData.timestamp
+                        },
+                        unread_count: messageData.sender.id !== user?.id
+                            ? (chat.unread_count || 0) + 1
+                            : chat.unread_count
+                    }
 
-                const updatedChat = {
-                    ...chat,
-                    last_message: {
-                        id: messageData.id,
-                        content: messageData.content,
-                        sender: messageData.sender,
-                        timestamp: messageData.timestamp
-                    },
-                    unread_count: messageData.sender.id !== user?.id
-                        ? (chat.unread_count || 0) + 1
-                        : chat.unread_count
+                    updatedChats.splice(chatIndex, 1)
+                    updatedChats.unshift(updatedChat)
+
+                    return updatedChats
                 }
 
-                updatedChats.splice(chatIndex, 1)
-                updatedChats.unshift(updatedChat)
-
-                return updatedChats
+                // Если чата нет - возвращаем текущее состояние, а чат загрузим асинхронно
+                return prev
             })
-        }, [user]),
+
+            // Если чата нет в списке - загружаем его
+            const chatExists = chats.find(chat => chat.id === messageData.chat_id)
+            if (!chatExists) {
+                try {
+                    const chatData = await loadChat(messageData.chat_id)
+                    if (chatData && isMounted.current) {
+                        setChats(prev => {
+                            // Проверяем еще раз, не добавился ли чат за время запроса
+                            const alreadyExists = prev.find(chat => chat.id === chatData.id)
+                            if (alreadyExists) {
+                                return prev
+                            }
+                            return [chatData, ...prev]
+                        })
+                    }
+                } catch (error) {
+                    console.error('Не удалось загрузить чат:', error)
+                }
+            }
+        }, [user, chats, loadChat]),
 
         onUserTyping: useCallback((typingData) => {
             setTypingChats(prev => {
@@ -73,6 +112,7 @@ const ChatList = () => {
                 return newState
             })
         }, []),
+
         onChatCreated: useCallback((chatData) => {
             setChats(prev => {
                 const existingChatIndex = prev.findIndex(chat => chat.id === chatData.id)
@@ -85,8 +125,6 @@ const ChatList = () => {
                     return [chatData, ...prev]
                 }
             })
-            
-            setTotal(prev => prev + 1)
         }, []),
 
         onChatUpdate: useCallback((chatData) => {
@@ -140,7 +178,8 @@ const ChatList = () => {
         }
     }, [])
 
-    const loadChats = useCallback(async (pageNum = 1, append = false) => {
+    // Загрузка чатов с курсорной пагинацией
+    const loadChats = useCallback(async (cursor = null, append = false) => {
         if (loading || !isMounted.current) {
             return
         }
@@ -148,7 +187,13 @@ const ChatList = () => {
         setLoading(true)
 
         try {
-            const response = await authFetch(`/api/v1/chats?page=${pageNum}&count=10`)
+            // Формируем URL с курсором
+            let url = '/api/v1/chats?count=10&direction=older'
+            if (cursor) {
+                url += `&cursor=${cursor}`
+            }
+
+            const response = await authFetch(url)
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`)
@@ -166,9 +211,13 @@ const ChatList = () => {
                 setChats(data.chats)
             }
 
-            setHasMore(data.meta.has_next)
-            setTotal(data.meta.total)
-            setPage(pageNum)
+            // Обновляем курсор для следующей загрузки
+            if (data.chats.length > 0) {
+                const lastChat = data.chats[data.chats.length - 1]
+                cursorRef.current = lastChat.id
+            }
+
+            setHasMore(data.meta.has_prev)
             initialLoadDone.current = true
 
         } catch (error) {
@@ -180,9 +229,10 @@ const ChatList = () => {
         }
     }, [authFetch, loading])
 
+    // Первоначальная загрузка
     useEffect(() => {
         if (!authLoading) {
-            loadChats(1, false)
+            loadChats(null, false)
         }
     }, [authLoading])
 
@@ -192,11 +242,11 @@ const ChatList = () => {
 
         setShowScrollTop(scrollTop > 100)
 
-        if (isNearBottom && hasMore && !loading && initialLoadDone.current) {
-            loadChats(page + 1, true)
+        // Загружаем следующие чаты при прокрутке вниз
+        if (isNearBottom && hasMore && !loading && initialLoadDone.current && cursorRef.current) {
+            loadChats(cursorRef.current, true)
         }
-    }, [hasMore, loading, page, loadChats])
-
+    }, [hasMore, loading])
 
     return (
         <ProtectedRoute>
@@ -217,7 +267,7 @@ const ChatList = () => {
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-800">Чаты</h1>
                                 <p className="text-gray-500 text-sm">
-                                    Всего чатов: {total} • Загружено: {chats.length}
+                                    Загружено чатов: {chats.length}
                                 </p>
                             </div>
                         </div>
@@ -268,7 +318,7 @@ const ChatList = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="space-y-3 pb-2"> {/* Добавил отступ снизу */}
+                                    <div className="space-y-3 pb-2">
                                         {chats.map(chat => (
                                             <ChatListItem key={chat.id} chat={chat} typingUsers={typingChats} />
                                         ))}

@@ -45,7 +45,7 @@ const ChatHeader = ({
                                 </span>
                             ) : (
                                 <span>
-                                    {statusText} • {messageCount} сообщений
+                                    {statusText}
                                 </span>
                             )}
                         </p>
