@@ -8,7 +8,7 @@ import ChatLayout from '../components/ChatLayout'
 const ChatPage = () => {
     const { chatId } = useParams()
     const navigate = useNavigate()
-     const { user, loading: authLoading } = useAuth()
+    const { user, loading: authLoading } = useAuth()
 
     const chat = useChat(chatId, false)
 
@@ -50,9 +50,11 @@ const ChatPage = () => {
                 sending={chat.sending}
                 isConnected={chat.isConnected}
                 onStopTyping={chat.stopTyping}
+                showScrollToBottom={chat.showScrollToBottom}
+                onScrollToBottom={chat.scrollToBottom}
             />
         </ProtectedRoute>
     )
 }
 
-export default ChatPage 
+export default ChatPage

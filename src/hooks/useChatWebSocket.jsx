@@ -48,7 +48,7 @@ export const useChatWebSocket = (accessToken, chatId, callbacks = {}) => {
         })
 
         return unsubscribe
-    }, [wsUrl, onMessage, onNewMessage, onUserTyping, onMessageEdited, playSound])
+    }, [wsUrl])
 
     const sendChatMessage = (content) => {
         if (!chatId) {

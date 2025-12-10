@@ -51,6 +51,9 @@ const DirectChatPage = () => {
                 isConnected={chat.isConnected}
                 onStopTyping={chat.stopTyping}
                 chatExists={chat.chatExists}
+                // ДОБАВЛЕННЫЕ ПРОПСЫ ДЛЯ КНОПКИ ПРОКРУТКИ
+                showScrollToBottom={chat.showScrollToBottom}
+                onScrollToBottom={chat.scrollToBottom}
             />
         </ProtectedRoute>
     )

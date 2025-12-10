@@ -1,4 +1,3 @@
-// hooks/useChat.js
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useChatWebSocket } from './useChatWebSocket'
@@ -9,7 +8,6 @@ export const useChat = (chatIdentifier, isDirect = false) => {
 
     const [chat, setChat] = useState(null)
     const [messages, setMessages] = useState([])
-    const [loading, setLoading] = useState(false)
     const [hasOlder, setHasOlder] = useState(false)
     const [hasNewer, setHasNewer] = useState(false)
     const [total, setTotal] = useState(0)
@@ -17,6 +15,7 @@ export const useChat = (chatIdentifier, isDirect = false) => {
     const [sending, setSending] = useState(false)
     const [userNotFound, setUserNotFound] = useState(false)
     const [initialized, setInitialized] = useState(false)
+    const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 
     const messagesEndRef = useRef(null)
     const messagesContainerRef = useRef(null)
@@ -24,7 +23,10 @@ export const useChat = (chatIdentifier, isDirect = false) => {
     const initialLoadDone = useRef(false)
     const scrollPositionRef = useRef(0)
     const messagesHeightRef = useRef(0)
-    const loadThreshold = 200
+    const loadingRef = useRef(false)
+    const autoScrollEnabled = useRef(true)
+    const loadThreshold = 0
+    const scrollBottomThreshold = 100 // Расстояние от низа для показа кнопки
 
     //Для директ-чата чат может не существовать изначально - это нормально
     const chatExists = chat?.id
@@ -38,7 +40,14 @@ export const useChat = (chatIdentifier, isDirect = false) => {
                 // Для директ-чата принимаем сообщения даже если чат еще не создан
                 if (isDirect || message.chat_id === effectiveChatId) {
                     setMessages(prev => [...prev, message])
-                    setTimeout(() => scrollToBottom(), 100)
+                    
+                    // Автоскролл только если пользователь уже находится внизу
+                    if (autoScrollEnabled.current) {
+                        setTimeout(() => scrollToBottom(), 100)
+                    } else {
+                        // Показываем кнопку прокрутки вниз при новом сообщении
+                        setShowScrollToBottom(true)
+                    }
                 }
             },
             onUserTyping: (data) => {
@@ -82,15 +91,45 @@ export const useChat = (chatIdentifier, isDirect = false) => {
         }
     }, [])
 
+    // Функция для проверки, находится ли пользователь внизу чата
+    const isAtBottom = useCallback(() => {
+        if (!messagesContainerRef.current) return true
+        
+        const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
+        return scrollHeight - scrollTop - clientHeight <= scrollBottomThreshold
+    }, [])
+
+    // Обработчик скролла для отслеживания позиции
+    const handleScroll = useCallback((e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.target
+        
+        // Проверяем, находится ли пользователь внизу
+        const atBottom = scrollHeight - scrollTop - clientHeight <= scrollBottomThreshold
+        autoScrollEnabled.current = atBottom
+        
+        // Показываем/скрываем кнопку прокрутки вниз
+        setShowScrollToBottom(!atBottom)
+
+        // Загрузка старых сообщений при скролле вверх
+        const isNearTop = scrollTop <= loadThreshold
+        if (isNearTop && hasOlder && !loadingRef.current && (effectiveChatId || isDirect)) {
+            const oldestMessage = messages[0]
+            if (oldestMessage) {
+                loadMessages(oldestMessage.id, 'older')
+            }
+        }
+    }, [hasOlder, messages, effectiveChatId, isDirect])
+
     const loadMessages = useCallback(async (cursor = null, dir = 'older') => {
-        if (authLoading || !user || loading || !isMounted.current) return
+        if (authLoading || !user || loadingRef.current || !isMounted.current) return
 
         if (messagesContainerRef.current) {
             scrollPositionRef.current = messagesContainerRef.current.scrollTop
             messagesHeightRef.current = messagesContainerRef.current.scrollHeight
         }
 
-        setLoading(true)
+        loadingRef.current = true
+
         setUserNotFound(false)
 
         try {
@@ -155,11 +194,10 @@ export const useChat = (chatIdentifier, isDirect = false) => {
             }
         } finally {
             if (isMounted.current) {
-                setLoading(false)
+                loadingRef.current = false
             }
         }
-    }, [chatIdentifier, authFetch, loading, isDirect])
-
+    }, [chatIdentifier, authFetch])
 
     useEffect(() => {
         if (chatIdentifier && !initialized && !authLoading) {
@@ -168,31 +206,25 @@ export const useChat = (chatIdentifier, isDirect = false) => {
     }, [chatIdentifier, initialized, authLoading])
 
     useEffect(() => {
-        if (messages.length > 0 && !loading && !initialLoadDone.current) {
+        if (messages.length > 0 && !loadingRef.current && !initialLoadDone.current) {
             if (messagesContainerRef.current) {
                 messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
                 initialLoadDone.current = true
+                autoScrollEnabled.current = true
             }
         }
-    }, [messages, loading])
+    }, [messages])
 
-    const scrollToBottom = () => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    const scrollToBottom = useCallback(() => {
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTo({
+                top: messagesContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            })
+            autoScrollEnabled.current = true
+            setShowScrollToBottom(false)
         }
-    }
-
-    const handleScroll = useCallback((e) => {
-        const { scrollTop } = e.target
-        const isNearTop = scrollTop <= loadThreshold
-
-        if (isNearTop && hasOlder && !loading && (effectiveChatId || isDirect)) {
-            const oldestMessage = messages[0]
-            if (oldestMessage) {
-                loadMessages(oldestMessage.id, 'older')
-            }
-        }
-    }, [hasOlder, loading, messages, loadMessages, effectiveChatId, isDirect])
+    }, [])
 
     const sendMessage = async (messageContent) => {
         if (!messageContent.trim() || sending) return false
@@ -283,6 +315,8 @@ export const useChat = (chatIdentifier, isDirect = false) => {
             const success = await sendMessage(messageContent)
             if (success) {
                 setNewMessage('')
+                // После отправки сообщения прокручиваем вниз
+                setTimeout(() => scrollToBottom(), 100)
             }
             return success
         } catch (error) {
@@ -299,7 +333,6 @@ export const useChat = (chatIdentifier, isDirect = false) => {
         // State
         chat,
         messages,
-        loading,
         hasOlder,
         hasNewer,
         total,
@@ -310,10 +343,12 @@ export const useChat = (chatIdentifier, isDirect = false) => {
         typingUsers,
         isConnected,
         initialized,
+        showScrollToBottom,
 
         // Refs
         messagesEndRef,
         messagesContainerRef,
+        loadingRef,
 
         // Handlers
         handleMessageChange,

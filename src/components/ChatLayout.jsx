@@ -24,7 +24,9 @@ const ChatLayout = ({
     sending,
     isConnected,
     onStopTyping,
-    chatExists
+    chatExists,
+    showScrollToBottom = false,
+    onScrollToBottom
 }) => {
     if (userNotFound) {
         return (
@@ -72,28 +74,38 @@ const ChatLayout = ({
                 />
 
                 <div className="flex-1 min-h-0">
-                    <div className="h-full max-w-2xl mx-auto flex flex-col">
-                        <MessageList
-                            messages={messages}
-                            loading={loading}
-                            hasOlder={hasOlder}
-                            messagesEndRef={messagesEndRef}
-                            messagesContainerRef={messagesContainerRef}
-                            onScroll={onScroll}
-                            user={user}
-                            showEmptyState={showEmptyState}
-                            displayName={displayName}
-                        />
+                    <div className="h-full max-w-2xl mx-auto flex flex-col relative">
+                        {/* Нежный градиент со звездчатым паттерном */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-100 to-blue-100 pointer-events-none">
+                          
+                        </div>
 
-                        <MessageInput
-                            newMessage={newMessage}
-                            onMessageChange={onMessageChange}
-                            onSendMessage={onSendMessage}
-                            sending={sending}
-                            onStopTyping={onStopTyping}
-                            displayName={displayName}
-                            disabled={userNotFound}
-                        />
+                        {/* Основной контент */}
+                        <div className="relative z-10 h-full flex flex-col">
+                            <MessageList
+                                messages={messages}
+                                loading={loading}
+                                hasOlder={hasOlder}
+                                messagesEndRef={messagesEndRef}
+                                messagesContainerRef={messagesContainerRef}
+                                onScroll={onScroll}
+                                user={user}
+                                showEmptyState={showEmptyState}
+                                displayName={displayName}
+                                showScrollToBottom={showScrollToBottom}
+                                onScrollToBottom={onScrollToBottom}
+                            />
+
+                            <MessageInput
+                                newMessage={newMessage}
+                                onMessageChange={onMessageChange}
+                                onSendMessage={onSendMessage}
+                                sending={sending}
+                                onStopTyping={onStopTyping}
+                                displayName={displayName}
+                                disabled={userNotFound}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

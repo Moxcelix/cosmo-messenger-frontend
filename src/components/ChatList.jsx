@@ -266,9 +266,9 @@ const ChatList = () => {
                             </div>
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-800">Чаты</h1>
-                                <p className="text-gray-500 text-sm">
+                                {/* <p className="text-gray-500 text-sm">
                                     Загружено чатов: {chats.length}
-                                </p>
+                                </p> */}
                             </div>
                         </div>
                     </div>
