@@ -9,6 +9,10 @@ RUN npm install
 # Копируем исходный код
 COPY . .
 
+RUN npm run build
+
 EXPOSE 3000
 
-CMD ["npm", "run", "dev", "--", "--host"]
+#CMD ["npm", "run", "dev", "--", "--host"]
+#CMD ["npm", "run", "build"]
+CMD ["npm", "run", "build"]

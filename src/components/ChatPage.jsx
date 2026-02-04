@@ -13,7 +13,7 @@ const ChatPage = () => {
     const chat = useChat(chatId, false)
 
     const handleBack = () => navigate('/chats')
-
+    //
     if (authLoading) {
         return (
             <ProtectedRoute>
@@ -52,6 +52,7 @@ const ChatPage = () => {
                 onStopTyping={chat.stopTyping}
                 showScrollToBottom={chat.showScrollToBottom}
                 onScrollToBottom={chat.scrollToBottom}
+                forbidden={chat.forbidden}
             />
         </ProtectedRoute>
     )

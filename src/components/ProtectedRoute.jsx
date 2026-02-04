@@ -13,6 +13,8 @@ const ProtectedRoute = ({ children }) => {
         )
     }
 
+    console.log(`isAuthenticated ${isAuthenticated}`)
+
     if (!isAuthenticated) {
         return (
             <>

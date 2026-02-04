@@ -16,6 +16,7 @@ export const useChat = (chatIdentifier, isDirect = false) => {
     const [userNotFound, setUserNotFound] = useState(false)
     const [initialized, setInitialized] = useState(false)
     const [showScrollToBottom, setShowScrollToBottom] = useState(false)
+    const [forbidden, setForbidden] = useState(false) // Новое состояние
 
     const messagesEndRef = useRef(null)
     const messagesContainerRef = useRef(null)
@@ -26,9 +27,8 @@ export const useChat = (chatIdentifier, isDirect = false) => {
     const loadingRef = useRef(false)
     const autoScrollEnabled = useRef(true)
     const loadThreshold = 0
-    const scrollBottomThreshold = 100 // Расстояние от низа для показа кнопки
+    const scrollBottomThreshold = 100
 
-    //Для директ-чата чат может не существовать изначально - это нормально
     const chatExists = chat?.id
     const effectiveChatId = chatExists ? chat.id : (isDirect ? null : chatIdentifier)
 
@@ -37,15 +37,12 @@ export const useChat = (chatIdentifier, isDirect = false) => {
         effectiveChatId,
         {
             onNewMessage: (message) => {
-                // Для директ-чата принимаем сообщения даже если чат еще не создан
                 if (isDirect || message.chat_id === effectiveChatId) {
                     setMessages(prev => [...prev, message])
                     
-                    // Автоскролл только если пользователь уже находится внизу
                     if (autoScrollEnabled.current) {
                         setTimeout(() => scrollToBottom(), 100)
                     } else {
-                        // Показываем кнопку прокрутки вниз при новом сообщении
                         setShowScrollToBottom(true)
                     }
                 }
@@ -91,7 +88,6 @@ export const useChat = (chatIdentifier, isDirect = false) => {
         }
     }, [])
 
-    // Функция для проверки, находится ли пользователь внизу чата
     const isAtBottom = useCallback(() => {
         if (!messagesContainerRef.current) return true
         
@@ -99,18 +95,14 @@ export const useChat = (chatIdentifier, isDirect = false) => {
         return scrollHeight - scrollTop - clientHeight <= scrollBottomThreshold
     }, [])
 
-    // Обработчик скролла для отслеживания позиции
     const handleScroll = useCallback((e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.target
         
-        // Проверяем, находится ли пользователь внизу
         const atBottom = scrollHeight - scrollTop - clientHeight <= scrollBottomThreshold
         autoScrollEnabled.current = atBottom
         
-        // Показываем/скрываем кнопку прокрутки вниз
         setShowScrollToBottom(!atBottom)
 
-        // Загрузка старых сообщений при скролле вверх
         const isNearTop = scrollTop <= loadThreshold
         if (isNearTop && hasOlder && !loadingRef.current && (effectiveChatId || isDirect)) {
             const oldestMessage = messages[0]
@@ -131,6 +123,7 @@ export const useChat = (chatIdentifier, isDirect = false) => {
         loadingRef.current = true
 
         setUserNotFound(false)
+        setForbidden(false) // Сбрасываем состояние forbidden
 
         try {
             let url = isDirect
@@ -142,6 +135,15 @@ export const useChat = (chatIdentifier, isDirect = false) => {
             }
 
             const response = await authFetch(url)
+
+            if (response.status === 403) {
+                setForbidden(true)
+                setMessages([])
+                setTotal(0)
+                setHasOlder(false)
+                setHasNewer(false)
+                return
+            }
 
             if (response.status === 404 && isDirect) {
                 setUserNotFound(false)
@@ -191,6 +193,8 @@ export const useChat = (chatIdentifier, isDirect = false) => {
             if (error.message.includes('404') && isDirect) {
                 setMessages([])
                 setTotal(0)
+            } else if (error.message.includes('403')) {
+                setForbidden(true)
             }
         } finally {
             if (isMounted.current) {
@@ -246,6 +250,11 @@ export const useChat = (chatIdentifier, isDirect = false) => {
                     })
                 })
 
+                if (response.status === 403) {
+                    setForbidden(true)
+                    throw new Error('Доступ запрещен')
+                }
+
                 if (!response.ok) {
                     if (response.status === 404) {
                         throw new Error('Пользователь не найден')
@@ -288,6 +297,11 @@ export const useChat = (chatIdentifier, isDirect = false) => {
                     body: JSON.stringify(body)
                 })
 
+                if (response.status === 403) {
+                    setForbidden(true)
+                    throw new Error('Доступ запрещен')
+                }
+
                 if (!response.ok) {
                     const errorText = await response.text()
                     throw new Error(errorText || 'HTTP send failed')
@@ -315,7 +329,6 @@ export const useChat = (chatIdentifier, isDirect = false) => {
             const success = await sendMessage(messageContent)
             if (success) {
                 setNewMessage('')
-                // После отправки сообщения прокручиваем вниз
                 setTimeout(() => scrollToBottom(), 100)
             }
             return success
@@ -344,6 +357,7 @@ export const useChat = (chatIdentifier, isDirect = false) => {
         isConnected,
         initialized,
         showScrollToBottom,
+        forbidden, // Новый параметр
 
         // Refs
         messagesEndRef,

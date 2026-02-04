@@ -1,57 +1,73 @@
 import React from 'react'
+import '../styles/ChatHeader.css'
 import TypingDots from './TypingDots'
 
-const ChatHeader = ({ 
-    chat, 
-    total, 
-    typingUsers, 
-    onBack, 
-    isDirect = false, 
+const ChatHeader = ({
+    chat,
+    typingUsers,
+    onBack,
+    isDirect,
     displayName,
-    title,
-    chatExists 
+    total
 }) => {
-    const isTyping = Object.keys(typingUsers).length > 0
-    const finalDisplayName = title || chat?.name || displayName || 'Загрузка...'
-    
-    const statusText = isDirect 
-        ? (chatExists ? 'Личный чат' : 'Новый чат')
-        : 'Групповой чат'
+    // Получаем первую букву для аватарки
+    const getInitials = (name) => {
+        if (!name) return '?'
+        return name.charAt(0).toUpperCase()
+    }
 
-    const messageCount = isDirect && !chatExists ? 0 : total
+    const statusText = 'онлайн'
+
+    // Определяем статус
+    const isTyping = Object.keys(typingUsers).length > 0
 
     return (
-        <div className="flex-shrink-0 bg-white border-b p-4">
-            <div className="max-w-2xl mx-auto flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                    <button
-                        onClick={onBack}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <div className="min-w-0 flex-1">
-                        <h1 className="text-xl font-semibold text-gray-800 truncate">
-                            {finalDisplayName}
-                        </h1>
-                        <p className="text-sm text-gray-500 truncate">
-                            {isTyping ? (
-                                <span>
-                                    {Object.values(typingUsers)[0]}
-                                    {Object.keys(typingUsers).length > 1 ? ' и другие' : ''} печатает
-                                    <TypingDots />
-                                </span>
-                            ) : (
-                                <span>
-                                    {statusText}
-                                </span>
-                            )}
-                        </p>
+        <div className="chat-header">
+
+
+            <div className="user-info">
+                <button
+                    onClick={onBack}
+                    className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+                >
+                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <div className="avatar-container">
+                    <div className="avatar-circle">
+                        {getInitials(displayName || chat?.name)}
                     </div>
                 </div>
+
+                <div className="user-details">
+                    {/* Имя пользователя - наезжает на статус */}
+                    <div className="user-name">
+                        {displayName || chat?.name || 'Беседа'}
+                    </div>
+
+                    {/* Большой статус на заднем фоне */}
+                    {/* <div className={`user-status-background ${isTyping ? 'typing' : ''}`}>
+                        {isTyping ? 'печатает...' : 'ОНЛАЙН '}
+                    </div> */}
+
+                    <p className="status-text">
+                        {isTyping ? (
+                            <span>
+                                {Object.values(typingUsers)[0]}
+                                {Object.keys(typingUsers).length > 1 ? ' и другие' : ''} печатает
+                                <TypingDots />
+                            </span>
+                        ) : (
+                            <span>
+                                {statusText}
+                            </span>
+                        )}
+                    </p>
+
+                </div>
             </div>
+
         </div>
     )
 }

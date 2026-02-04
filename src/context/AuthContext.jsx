@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         if (!refreshToken || isTokenExpired(refreshToken)) {
+            logout()
             setShowSessionExpired(true)
             return null
         }
@@ -104,6 +105,11 @@ export const AuthProvider = ({ children }) => {
             if (newToken) {
                 config.headers.Authorization = `Bearer ${newToken}`
                 response = await fetch(url, config)
+
+                if (response.status === 401) {
+                    logout()
+                    setShowSessionExpired(true)
+                }
             } else {
                 throw new Error('Session expired')
             }
@@ -131,7 +137,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null)
         setAccessToken(null)
         setRefreshToken(null)
-        setShowSessionExpired(false) 
+        setShowSessionExpired(false)
 
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')

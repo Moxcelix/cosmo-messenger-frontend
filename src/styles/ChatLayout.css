@@ -1,0 +1,415 @@
+/* Обертка для центрирования чата */
+.chat-layout-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* или stretch для растяжения по высоте */
+    min-height: 100vh;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Основной контейнер чата - 60% ширины */
+.chat-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 95vh; /* Максимальная высота 90% экрана */
+    width: 100%;
+    max-width: 40%; /* 60% ширины экрана */
+    position: relative;
+    overflow: hidden;
+    background: rgb(240, 247, 255);
+    border-radius: 24px; /* Закругленные углы для красоты */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); /* Тень для отделения от фона */
+    
+    /* Для плавного изменения размера */
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .chat-layout-wrapper {
+        padding: 0;
+    }
+    
+    .chat-layout {
+        max-width: 100%;
+        max-height: 100vh;
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+    }
+}
+
+/* Радиальные градиенты поверх фона */
+.chat-layout::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    
+    /* Левый нижний угол - розовый */
+    background-image: 
+        radial-gradient(
+            circle at 0% 100%,
+            rgba(255, 119, 241, 1) 0%,
+            rgba(255, 119, 241, 0) 80%
+        ),
+        
+        /* Правая сторона, середина высоты - голубой */
+        radial-gradient(
+            circle at 100% 50%,
+            rgba(139, 230, 255, 1) 0%,
+            rgba(139, 230, 255, 0) 80%
+        ),
+        
+        /* Левый верхний угол - бирюзовый */
+        radial-gradient(
+            circle at 0% 0%,
+            rgba(89, 255, 227, 1) 0%,
+            rgba(89, 255, 227, 0) 80%
+        );
+    
+    background-size: 
+        100% calc(100% + 100px),
+        100% 100%,
+        100% 100%;
+    
+    background-position: 
+        0px calc(100% + 100px),
+        calc(100% + 100px) 50%,
+        0px -100px;
+    
+    background-repeat: no-repeat;
+    opacity: 0.4;
+}
+
+/* Обертка для сообщений с масками */
+.messages-mask-container {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Верхняя маска - прозрачная, но с маскирующим градиентом */
+.mask-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px; /* Увеличиваем высоту для плавности */
+    z-index: 5;
+    pointer-events: none;
+    
+    /* Создаем маску с прозрачным градиентом */
+    -webkit-mask-image: linear-gradient(to bottom, 
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 1) 30%,
+        rgba(0, 0, 0, 0.5) 60%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    mask-image: linear-gradient(to bottom, 
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 1) 30%,
+        rgba(0, 0, 0, 0.5) 60%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    
+    /* Фон прозрачный - через него виден задний фон */
+    background: transparent;
+}
+
+/* Нижняя маска - прозрачная, но с маскирующим градиентом */
+.mask-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px; /* Увеличиваем высоту для плавности */
+    z-index: 5;
+    pointer-events: none;
+    
+    /* Создаем маску с прозрачным градиентом */
+    -webkit-mask-image: linear-gradient(to top, 
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 1) 30%,
+        rgba(0, 0, 0, 0.5) 60%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    mask-image: linear-gradient(to top, 
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 1) 30%,
+        rgba(0, 0, 0, 0.5) 60%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    
+    /* Фон прозрачный - через него виден задний фон */
+    background: transparent;
+}
+
+/* Эффект для MessageList - на него будет действовать маска */
+.messages-mask-container > :nth-child(2) {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    z-index: 2;
+    
+    /* Применяем маскирование ко всему контейнеру сообщений */
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        black 80px,           /* Начинаем появляться после 80px сверху */
+        black calc(100% - 100px), /* Исчезаем за 100px до низа */
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        black 80px,
+        black calc(100% - 100px),
+        transparent 100%
+    );
+    
+
+}
+
+/* Альтернативный вариант: применять маску напрямую к контейнеру сообщений */
+.message-list-container {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    
+    /* Плавное маскирование сверху и снизу */
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.2) 30px,
+        rgba(0, 0, 0, 0.4) 50px,
+        rgba(0, 0, 0, 0.6) 60px,
+        rgba(0, 0, 0, 0.8) 70px,
+        rgba(0, 0, 0, 1) 80px,
+        rgba(0, 0, 0, 1) calc(100% - 100px),
+        rgba(0, 0, 0, 0.8) calc(100% - 80px),
+        rgba(0, 0, 0, 0.6) calc(100% - 60px),
+        rgba(0, 0, 0, 0.4) calc(100% - 40px),
+        rgba(0, 0, 0, 0.2) calc(100% - 20px),
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.2) 30px,
+        rgba(0, 0, 0, 0.4) 50px,
+        rgba(0, 0, 0, 0.6) 60px,
+        rgba(0, 0, 0, 0.8) 70px,
+        rgba(0, 0, 0, 1) 80px,
+        rgba(0, 0, 0, 1) calc(100% - 100px),
+        rgba(0, 0, 0, 0.8) calc(100% - 80px),
+        rgba(0, 0, 0, 0.6) calc(100% - 60px),
+        rgba(0, 0, 0, 0.4) calc(100% - 40px),
+        rgba(0, 0, 0, 0.2) calc(100% - 20px),
+        transparent 100%
+    );
+    
+    /* Для Firefox */
+    mask-mode: alpha;
+    -webkit-mask-mode: alpha;
+}
+
+/* Убираем синий фон и добавляем z-index для дочерних элементов */
+.chat-layout > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Для правильного отображения градиентов в MessageList */
+.chat-layout > :nth-child(2) {
+    flex: 1;
+    min-height: 0;
+}
+
+/* Убираем горизонтальный скролл */
+.chat-layout,
+.chat-layout * {
+    box-sizing: border-box;
+}
+
+/* Темный режим */
+@media (prefers-color-scheme: dark) {
+    .chat-layout {
+        background: #0a0a0a;
+    }
+    
+    .chat-layout::before {
+        background-image: 
+            radial-gradient(
+                circle at 0% 100%,
+                rgba(255, 119, 241, 0.3) 0%,
+                rgba(255, 119, 241, 0) 70%
+            ),
+            radial-gradient(
+                circle at 100% 50%,
+                rgba(139, 230, 255, 0.3) 0%,
+                rgba(139, 230, 255, 0) 70%
+            ),
+            radial-gradient(
+                circle at 0% 0%,
+                rgba(100, 89, 255, 0.3) 0%,
+                rgba(100, 89, 255, 0) 70%
+            );
+        
+        opacity: 0.3;
+    }
+}
+
+.chat-layout::before {
+    animation: gradientFloat 20s ease-in-out infinite;
+}
+
+.chat-layout.no-animation::before {
+    animation: none;
+}
+
+/* Для старых браузеров, которые не поддерживают mask-image */
+@supports not (mask-image: linear-gradient(to bottom, black, transparent)) {
+    .mask-top,
+    .mask-bottom {
+        background: linear-gradient(to bottom, 
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.9) 100%
+        );
+    }
+    
+    .mask-bottom {
+        background: linear-gradient(to top, 
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.9) 100%
+        );
+    }
+}
+
+.message-input-absolute-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    
+    pointer-events: none;
+}
+
+.message-input-absolute-wrapper > * {
+    pointer-events: auto;
+}
+
+.message-input-absolute-wrapper .message-input-container {
+    padding: 16px 20px;
+    
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+/* Стили для состояния "Доступ запрещен" */
+.chat-header-forbidden {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    backdrop-filter: blur(10px);
+    gap: 16px;
+    position: relative;
+    z-index: 10;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.chat-title {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.back-button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: #333;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.back-button:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.back-button svg {
+    stroke-width: 2;
+}
+
+.forbidden-message-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.forbidden-message {
+    text-align: center;
+    max-width: 400px;
+}
+
+.forbidden-icon {
+    font-size: 64px;
+    margin-bottom: 24px;
+    opacity: 0.8;
+}
+
+.forbidden-title {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.forbidden-description {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 32px;
+}
+
+.forbidden-back-button {
+    padding: 12px 24px;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.forbidden-back-button:hover {
+    transform: translateY(-2px);
+}
+
+.forbidden-back-button:active {
+    transform: translateY(0);
+}

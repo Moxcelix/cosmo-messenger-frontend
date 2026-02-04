@@ -18,10 +18,22 @@ export default defineConfig({
     ],
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'http://backend:4000',
         changeOrigin: true,
         secure: false,
       }
     }
+  },
+  preview: {
+    host: true,
+    port: 4173,
+    cors: true, 
+    allowedHosts: [
+      'cosmomessenger.ru',
+      'www.cosmomessenger.ru',
+      'localhost',
+      'frontend',
+      'backend',
+    ]
   }
 })

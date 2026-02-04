@@ -1,0 +1,155 @@
+/* ChatHeader.css */
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    gap: 16px;
+    position: relative;
+    z-index: 10;
+    min-height: 80px; /* Минимальная высота для заднего фона */
+    /* background-color: rgb(255,255,255,0.8); */
+}
+
+/* Кнопка назад */
+.back-button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: #333;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    z-index: 2; /* Поверх статуса */
+}
+
+.back-button:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.back-button svg {
+    stroke-width: 2;
+}
+
+/* Информация о пользователе */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    overflow: visible; /* Разрешаем видимость статуса */
+}
+
+/* Аватарка */
+.avatar-container {
+    position: relative;
+    flex-shrink: 0;
+    z-index: 2; /* Поверх статуса */
+}
+
+.avatar-circle {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #FF77F1, #8BE6FF);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* Детали пользователя */
+.user-details {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* Имя пользователя - наезжает на статус */
+.user-name {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 20px;
+    color: #000;
+    margin-bottom: 2px;
+    overflow: visible; /* Разрешаем перекрытие */
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+    background: none; /* Убираем фон */
+    mix-blend-mode: normal; /* Нормальный режим смешивания */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Статус "онлайн" на заднем фоне */
+.user-status-background {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 72px; /* Большой размер */
+    font-weight: 800; /* Очень жирный */
+    color: rgba(0, 0, 0, 0.08); /* Полупрозрачный черный */
+    letter-spacing: -2px;
+    white-space: nowrap;
+    z-index: 0; /* Под именем */
+    pointer-events: none; /* Нельзя кликнуть */
+    opacity: 0.8;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-transform: uppercase;
+}
+
+/* Текст статуса под именем */
+.status-text {
+    font-family: sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    white-space: nowrap;
+}
+
+/* Индикатор "печатает" */
+.status-text.typing {
+    font-style: italic;
+}
+
+@keyframes statusPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: translateY(-50%) scale(1.1);
+    }
+}
+
+/* Количество сообщений */
+.message-count {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #666;
+    backdrop-filter: blur(10px);
+    z-index: 2; /* Поверх статуса */
+}
+
