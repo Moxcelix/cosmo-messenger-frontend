@@ -1,0 +1,25 @@
+.registerPageContainer {
+    background-color: white;
+    padding: 2rem;
+    width: 100%;
+    max-width: 28rem;
+    margin: 0 auto;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 767px) {
+    .registerPageContainer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        max-width: none;
+        overflow-y: auto;
+    }
+}

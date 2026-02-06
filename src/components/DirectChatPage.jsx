@@ -1,6 +1,6 @@
 import React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/AuthContextOld'
 import { useChat } from '../hooks/useChat'
 import ProtectedRoute from './ProtectedRoute'
 import ChatLayout from '../components/ChatLayout'

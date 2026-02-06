@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/AuthContextOld'
 import { useChatListWebSocket } from '../hooks/useChatListWebSocket'
 import ChatListItem from './ChatListItem'
 import ProtectedRoute from './ProtectedRoute'

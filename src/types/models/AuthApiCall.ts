@@ -1,0 +1,1 @@
+export type AuthApiCall<T> = (token: string, ...args: any[]) => Promise<T>;

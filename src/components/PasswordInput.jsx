@@ -3,7 +3,9 @@ import React, { useState } from 'react';
 const PasswordInput = ({
   value,
   onChange,
+  onBlur, 
   name,
+  autoComplete="password",
   placeholder = "Введите пароль",
   required = false,
   showValidation = false,
@@ -18,14 +20,16 @@ const PasswordInput = ({
   };
 
   const getInputStyles = () => {
-    let baseStyles = "w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 pr-10";
-    
+    let baseStyles = "w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ";
+
     if (showValidation && hasValue) {
-      baseStyles += isValid ? ' border-green-500 bg-green-50' : ' border-red-500 bg-red-50';
+      baseStyles += isValid ? 
+      ' border-green-500 bg-green-50 focus:ring-green-500 pr-10' : 
+      ' border-red-500 bg-red-50 focus:ring-red-500 pr-10';
     } else {
-      baseStyles += ' border-gray-300';
+      baseStyles += ' border-gray-300 focus:ring-gray-500 pr-10';
     }
-    
+
     return `${baseStyles} ${className}`;
   };
 
@@ -36,9 +40,11 @@ const PasswordInput = ({
         name={name}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         className={getInputStyles()}
         placeholder={placeholder}
         required={required}
+        autoComplete={autoComplete}
       />
       <button
         type="button"
@@ -47,19 +53,19 @@ const PasswordInput = ({
       >
         {showPassword ? (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                  d="M3 3l18 18" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M3 3l18 18" />
           </svg>
         ) : (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
           </svg>
         )}
       </button>
