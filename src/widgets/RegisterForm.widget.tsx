@@ -4,7 +4,11 @@ import { getErrorMessage } from '../utils/getErrorMessage';
 import PasswordInput from '../components/PasswordInput';
 import { translateAuthError } from '../utils/translateAuthError';
 
-export const RegisterForm = () => {
+interface RegisterFormProps {
+    onSuccess?: () => void;
+}
+
+export const RegisterForm = ({ onSuccess } : RegisterFormProps) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -49,6 +53,7 @@ export const RegisterForm = () => {
 
         try {
             await register(username, password, email);
+            onSuccess?.(); 
         } catch (err: unknown) {
             console.log(err)
         }

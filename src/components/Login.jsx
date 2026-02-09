@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom' 
-import { useAuth } from '../context/AuthContextOld'
+import { useAuthOld } from '../context/AuthContextOld'
 import PasswordInput from './PasswordInput' 
 
 const Login = () => {
@@ -9,7 +9,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { login } = useAuth()
+  const { login } = useAuthOld()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {

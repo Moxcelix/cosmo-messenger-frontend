@@ -1,6 +1,6 @@
 import React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContextOld'
+import { useAuthOld } from '../context/AuthContextOld'
 import { useChat } from '../hooks/useChat'
 import ProtectedRoute from './ProtectedRoute'
 import ChatLayout from '../components/ChatLayout'
@@ -8,7 +8,7 @@ import ChatLayout from '../components/ChatLayout'
 const DirectChatPage = () => {
     const { username } = useParams()
     const navigate = useNavigate()
-    const { user, loading: authLoading  } = useAuth()
+    const { user, loading: authLoading  } = useAuthOld()
 
     const chat = useChat(username, true)
 

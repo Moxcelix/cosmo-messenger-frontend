@@ -1,5 +1,9 @@
+import { ApiError } from "../types/errors/ApiError";
+
 export async function formatError(response: Response): Promise<never> {
-    let errorMessage = `HTTP ${response.status}`;
+    const status = response.status;
+    let code = 'UNKNOWN_ERROR';
+    let message = `HTTP ${status}: Unknown error`;
 
     try {
         const text = await response.text();
@@ -7,14 +11,29 @@ export async function formatError(response: Response): Promise<never> {
         if (text) {
             try {
                 const json = JSON.parse(text);
-                errorMessage = json.message || json.error || text;
+
+                code =
+                    json.code ||
+                    json.error_code ||
+                    json.type ||
+                    String(status);
+
+                message =
+                    json.message ||
+                    json.error ||
+                    json.detail ||
+                    json.msg ||
+                    text;
             } catch {
-                errorMessage = text;
+                message = text;
             }
+        } else {
+            message = `HTTP ${status} with empty response`;
         }
     } catch (e) {
-        console.warn('Could not read response body:', e);
+        console.warn('Failed to read response body:', e);
+        message = `HTTP ${status} (failed to read response body)`;
     }
 
-    throw new Error(errorMessage);
+    throw new ApiError(status, code, message, response);
 }

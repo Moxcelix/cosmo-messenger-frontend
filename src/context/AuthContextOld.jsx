@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect, useRef } from 'r
 
 const AuthContext = createContext()
 
-export const useAuth = () => {
+export const useAuthOld = () => {
     const context = useContext(AuthContext)
     if (!context) {
         throw new Error('useAuth must be used within AuthProvider')
@@ -10,7 +10,7 @@ export const useAuth = () => {
     return context
 }
 
-export const AuthProvider = ({ children }) => {
+export const AuthProviderOld = ({ children }) => {
     const [user, setUser] = useState(null)
     const [accessToken, setAccessToken] = useState(null)
     const [refreshToken, setRefreshToken] = useState(null)

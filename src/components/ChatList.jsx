@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContextOld'
+import { useAuthOld } from '../context/AuthContextOld'
 import { useChatListWebSocket } from '../hooks/useChatListWebSocket'
 import ChatListItem from './ChatListItem'
 import ProtectedRoute from './ProtectedRoute'
@@ -8,7 +8,7 @@ import UserSearch from './UserSearch'
 import UserSearchResult from './UserSearchResult'
 
 const ChatList = () => {
-    const { authFetch, logout, user, loading: authLoading, accessToken } = useAuth()
+    const { authFetch, logout, user, loading: authLoading, accessToken } = useAuthOld()
     const navigate = useNavigate()
     const [chats, setChats] = useState([])
     const [loading, setLoading] = useState(false)

@@ -1,9 +1,9 @@
 import React from 'react'
-import { useAuth } from '../context/AuthContextOld'
+import { useAuthOld } from '../context/AuthContextOld'
 import SessionExpiredModal from './SessionExpiredModal'
 
 const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated, loading, showSessionExpired } = useAuth()
+    const { isAuthenticated, loading, showSessionExpired } = useAuthOld()
 
     if (loading) {
         return (

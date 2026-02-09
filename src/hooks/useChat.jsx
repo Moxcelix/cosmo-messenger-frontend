@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useAuth } from '../context/AuthContextOld'
+import { useAuthOld } from '../context/AuthContextOld'
 import { useChatWebSocket } from './useChatWebSocket'
 import { useTyping } from './useTyping'
 
 export const useChat = (chatIdentifier, isDirect = false) => {
-    const { authFetch, user, accessToken, loading: authLoading } = useAuth()
+    const { authFetch, user, accessToken, loading: authLoading } = useAuthOld()
 
     const [chat, setChat] = useState(null)
     const [messages, setMessages] = useState([])

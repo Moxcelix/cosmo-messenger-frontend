@@ -1,9 +1,9 @@
 import React from 'react';
-import { useAuth } from '../context/AuthContextOld';
+import { useAuthOld } from '../context/AuthContextOld';
 import '../styles/SessionExpiredModal.css';
 
 const SessionExpiredModal = () => {
-    const { logout } = useAuth();
+    const { logout } = useAuthOld();
 
     const handleConfirm = () => {
         logout();

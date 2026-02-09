@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { useAuth } from '../context/AuthContextOld'
+import { useAuthOld } from '../context/AuthContextOld'
 
 const UserSearch = ({ onUserFound }) => {
-    const { authFetch } = useAuth()
+    const { authFetch } = useAuthOld()
     const [username, setUsername] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
