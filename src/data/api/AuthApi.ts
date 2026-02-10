@@ -1,4 +1,5 @@
 import { TokenPair } from "../../types/models/Token";
+import { User } from "../../types/models/User";
 import { LoginRequest } from "../../types/requests/LoginRequest";
 import { RefreshRequest } from "../../types/requests/RefreshRequest";
 import { RegisterRequest } from "../../types/requests/RegisterRequest";
@@ -71,5 +72,35 @@ export class AuthApi implements AuthService {
         }
 
         return;
+    }
+
+    async getUser(jwt: string): Promise<User> {
+        const response = await fetch(`${BASE_URL}/user/profile`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${jwt}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            await formatError(response);
+        }
+
+        return await response.json();
+    }
+
+    async resendEmail(jwt: string): Promise<void> {
+        const response = await fetch(`${BASE_URL}/user/activate/resend`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${jwt}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            await formatError(response);
+        }
     }
 }
