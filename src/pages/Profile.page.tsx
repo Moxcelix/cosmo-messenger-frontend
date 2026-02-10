@@ -1,13 +1,18 @@
+import styles from '../styles/BasePage.module.css'
+
 import { useLogoutRedirect } from "../hooks/useLogoutRedirect";
+import { NavigationPanel } from "../widgets/NavigationPanel.widget";
 import { UserAccount } from "../widgets/UserAccount.widget";
 
 export const ProfilePage = () => {
     const { loading } = useLogoutRedirect('/new/login');
-    
+
     return (
-        <div>
-            <h1>Профиль</h1>
-            <UserAccount />
+        <div className="min-h-screen bg-gradient-to-br from-purple-300 to-blue-300 flex items-center justify-center">
+            <div className={styles.baseContainer}>
+                <NavigationPanel />
+                <UserAccount />
+            </div>
         </div>
     );
 }

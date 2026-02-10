@@ -89,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         try {
+            setLoading(true)
             return await apiCall(currentToken, ...data);
         } catch (err: unknown) {
             const isUnauthorized = err instanceof ApiError && err.status === 401;
@@ -102,8 +103,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 }
                 return await apiCall(newToken, ...data);
             }
-
             throw err;
+        }
+        finally{
+            setLoading(false)
         }
     },
         [authStorage, refresh]
