@@ -66,7 +66,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
             const refresh_token = authStorage.getToken()?.refresh_token;
             if (!refresh_token) {
-                throw new Error('No refresh token available');
+                logout()
+                return
             }
             const token = await authService.refresh({ refresh_token });
             authStorage.setToken(token);

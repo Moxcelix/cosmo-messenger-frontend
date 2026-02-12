@@ -14,6 +14,7 @@ export const RegisterForm = ({ onSuccess } : RegisterFormProps) => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isTermsAccepted, setIsTermsAccepted] = useState(false);
+    const [isChecked, setIsChecked] = useState(false)
 
     const { register, validatePassword, setPasswordError, registerError, passwordError, loading } = useRegister();
 
@@ -33,6 +34,7 @@ export const RegisterForm = ({ onSuccess } : RegisterFormProps) => {
         if (!password) return;
 
         try {
+            setIsChecked(true)
             await validatePassword(password);
         } catch (err: unknown) {
             console.log(err)
@@ -68,6 +70,7 @@ export const RegisterForm = ({ onSuccess } : RegisterFormProps) => {
     const isUsernameValid = validateUsername(username)
     const hasUsername = username.length > 0
     const noErrors = passwordError == null
+    const showValidation = password != '' && isChecked
 
     return (
         <div>
@@ -154,7 +157,7 @@ export const RegisterForm = ({ onSuccess } : RegisterFormProps) => {
                         onBlur={handlePasswordBlur}
                         placeholder="Введите пароль"
                         isValid={passwordError == null}
-                        showValidation={true}
+                        showValidation={showValidation}
                         required={true}
                         hasValue={true}
                     />
@@ -178,7 +181,7 @@ export const RegisterForm = ({ onSuccess } : RegisterFormProps) => {
                         autoComplete="off"
                         placeholder="Повторите пароль"
                         isValid={hasConfirmPassword && passwordsMatch}
-                        showValidation={true}
+                        showValidation={showValidation}
                         required={true}
                         hasValue={true}
                     />

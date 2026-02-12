@@ -1,25 +1,21 @@
 import styles from '../styles/BasePage.module.css'
 
-import { useLogoutRedirect } from '../hooks/useLogoutRedirect';
+import { useLogoutRedirect } from "../hooks/useLogoutRedirect";
+import { NavigationPanel } from "../widgets/NavigationPanel.widget";
 import { NavigationLayout } from '../layout/Navigation.layout';
+import { SettingsWidget } from '../widgets/Settings.widget';
 
-export const ChatsPage = () => {
-
+export const SettingsPage = () => {
     const { loading } = useLogoutRedirect('/new/login');
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-300 to-blue-300 flex items-center justify-center">
             <div className={styles.baseContainer}>
                 <NavigationLayout>
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-6">Чаты</h1>
-
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <p className="text-gray-600">Список чатов будет здесь...</p>
-                        </div>
-                    </div>
+                    <NavigationPanel />
+                    <SettingsWidget />
                 </NavigationLayout>
             </div>
         </div>
     );
-};
+}

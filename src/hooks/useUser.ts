@@ -38,10 +38,26 @@ export const useUser = () => {
         }
     };
 
+    const changeEmail = async (new_email: string): Promise<void> => {
+        setError(null);
+        setLoading(true);
+
+        try {
+            await authFetch(authService.changeEmail, { new_email })
+        }
+        catch (err: unknown) {
+            setError(getErrorMessage(err));
+        }
+        finally{
+            setLoading(false);
+        }
+    }
+
     return {
         error,
         loading,
-        
+
+        changeEmail,
         getCurrentUser,
         resendActivationEmail,
     };

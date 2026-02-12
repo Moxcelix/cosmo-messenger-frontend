@@ -7,6 +7,11 @@ export const translateAuthError = (errorMessage: string): string => {
     if (errorMessage.includes('PASSWORD_MISSING_SPECIAL')) return 'Пароль должен содержать хотя бы один специальный символ';
     if (errorMessage.includes('EMAIL_ALREADY_TAKEN')) return 'Пользователь с таким email уже существует';
     if (errorMessage.includes('USERNAME_ALREADY_TAKEN')) return 'Пользователь с таким username уже существует'
+    if (errorMessage.includes('USER_NOT_FOUND')) return 'Пользователь не найден'
+    if (errorMessage.includes('USER_ALREADY_ACTIVATED')) return 'Пользователь уже активирован'
+    if (errorMessage.includes('CANNOT_ACTIVATE_DELETED_USER')) return 'Пользователь удален'
+    if (errorMessage.includes('INACTIVE_USER')) return 'Пользователь не подтвердил почту'
+    if (errorMessage.includes('TOKEN_EXPIRED')) return 'Время жизни токена сочтено...'
 
 
     return errorMessage;

@@ -1,12 +1,14 @@
 import { TokenPair } from "../../types/models/Token";
 import { User } from "../../types/models/User";
+import { ChangeEmailRequest } from "../../types/requests/ChangeEmailRequest";
 import { LoginRequest } from "../../types/requests/LoginRequest";
 import { RefreshRequest } from "../../types/requests/RefreshRequest";
 import { RegisterRequest } from "../../types/requests/RegisterRequest";
 import { AuthService } from "../../types/services/AuthService";
 import { formatError } from "../../utils/formatError";
 
-const BASE_URL = 'https://cosmomessenger.ru/api/v2/auth'
+//const BASE_URL = 'https://cosmomessenger.ru/api/v2/auth'
+const BASE_URL = '/api/v2/auth'
 
 export class AuthApi implements AuthService {
     async login(request: LoginRequest): Promise<TokenPair> {
@@ -97,6 +99,34 @@ export class AuthApi implements AuthService {
                 'Authorization': `Bearer ${jwt}`,
                 'Content-Type': 'application/json',
             },
+        });
+
+        if (!response.ok) {
+            await formatError(response);
+        }
+    }
+
+    async activateConfirm(token: string): Promise<void> {
+        const response = await fetch(`${BASE_URL}/user/activate/confirm?token=${token}`, {
+            method: 'GET',
+            headers: {
+                'accept': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            await formatError(response);
+        }
+    }
+
+    async changeEmail(jwt: string, request: ChangeEmailRequest): Promise<void> {
+        const response = await fetch(`${BASE_URL}/user/email/change`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${jwt}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(request),
         });
 
         if (!response.ok) {

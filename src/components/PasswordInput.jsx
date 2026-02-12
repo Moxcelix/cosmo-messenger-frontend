@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 const PasswordInput = ({
   value,
   onChange,
-  onBlur, 
+  onBlur,
   name,
-  autoComplete="password",
+  autoComplete = "password",
   placeholder = "Введите пароль",
   required = false,
   showValidation = false,
@@ -23,9 +23,9 @@ const PasswordInput = ({
     let baseStyles = "w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ";
 
     if (showValidation && hasValue) {
-      baseStyles += isValid ? 
-      ' border-green-500 bg-green-50 focus:ring-green-500 pr-10' : 
-      ' border-red-500 bg-red-50 focus:ring-red-500 pr-10';
+      baseStyles += isValid ?
+        ' border-green-500 bg-green-50 focus:ring-green-500 pr-10' :
+        ' border-red-500 bg-red-50 focus:ring-red-500 pr-10';
     } else {
       baseStyles += ' border-gray-300 focus:ring-gray-500 pr-10';
     }

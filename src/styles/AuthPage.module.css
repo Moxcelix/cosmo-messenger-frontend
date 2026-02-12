@@ -1,6 +1,5 @@
 .authContainer {
     background-color: white;
-    padding: 2rem;
     width: 100%;
     max-width: 28rem;
     transition: all 0.3s ease-in-out;
@@ -8,6 +7,7 @@
 
 @media (max-width: 767px) {
     .authContainer {
+        padding: 1rem;
         position: fixed;
         top: 0;
         left: 0;
@@ -24,6 +24,7 @@
 
 @media (min-width: 768px) {
     .authContainer {
+        padding: 3rem;
         border-radius: 1rem;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }

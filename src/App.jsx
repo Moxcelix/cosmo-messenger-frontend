@@ -12,6 +12,8 @@ import { ChatsPage } from './pages/Chats.page'
 import { ProfilePage } from './pages/Profile.page'
 import { AuthProviderOld } from './context/AuthContextOld'
 import { AuthProvider } from './context/AuthContext'
+import { ActivationPage } from './pages/Activation.page'
+import { SettingsPage } from './pages/Settings.page'
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
             <Route path="/new/register" element={<RegisterPage />} />
             <Route path="/new/chats" element={<ChatsPage />} />
             <Route path="/new/profile" element={<ProfilePage />} />
+            <Route path="/new/activate" element={<ActivationPage />} />
+            <Route path="/new/settings" element={<SettingsPage />} />
           </Routes>
         </AuthProviderOld>
       </AuthProvider>

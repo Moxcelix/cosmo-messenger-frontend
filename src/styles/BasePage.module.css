@@ -1,9 +1,7 @@
 .baseContainer {
     background-color: white;
-    padding: 2rem;
     width: 100%;
     max-width: 28rem;
-    transition: all 0.3s ease-in-out;
 }
 
 @media (max-width: 999px) {
@@ -19,11 +17,13 @@
         box-shadow: none;
         max-width: none;
         overflow-y: auto;
+        padding: 1rem;
     }
 }
 
 @media (min-width: 1000px) {
     .baseContainer {
+        padding: 3rem;
         width: 60vw;
         height: 100vh;
         position: fixed;

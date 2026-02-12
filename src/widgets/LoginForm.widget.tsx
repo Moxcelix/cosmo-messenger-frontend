@@ -93,7 +93,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
                 <div className="pt-2">
                     <button
                         type="submit"
-                        disabled={loading || !username || !password}
+                        disabled={loading}
                         className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex justify-center items-center"
                     >
                         {loading ? (

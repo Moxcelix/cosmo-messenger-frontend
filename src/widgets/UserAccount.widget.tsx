@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useUser } from '../hooks/useUser';
 import { User } from '../types/models/User';
+import { SettingsIcon } from '../components/Icons';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 interface UserAccountProps {
     onLogout?: () => void;
@@ -9,11 +12,13 @@ interface UserAccountProps {
 }
 
 export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
+    const navigate = useNavigate();
     const { authorized, logout, loading: authLoading } = useAuth();
     const { getCurrentUser, resendActivationEmail, error, loading: userLoading } = useUser();
     const [user, setUser] = useState<User | null>(null);
     const [resending, setResending] = useState(false);
     const [logoutLoading, setLogoutLoading] = useState(false);
+    const [isHovering, setIsHovering] = useState(false);
 
     const loading = authLoading || userLoading || logoutLoading;
 
@@ -21,7 +26,7 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
         if (authorized && !userLoading) {
             getCurrentUser().then(setUser).catch(console.error);
         }
-    }, [authorized, userLoading, getCurrentUser]);
+    }, [authorized]);
 
     const handleResend = async () => {
         setResending(true);
@@ -48,12 +53,13 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
         }
     };
 
+    const handleSettingsClick = () => {
+        navigate('/new/settings');
+    };
+
     if (loading && !user) {
         return (
-            <div className="rounded-lg bg-white p-6 border border-gray-200 text-center">
-                <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p className="text-gray-600">Загрузка профиля...</p>
-            </div>
+            <LoadingSpinner/>
         );
     }
 
@@ -74,9 +80,32 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
     }
 
     return (
-        <div className="bg-white p-8 w-full">
+        <div className="bg-white w-full">
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Мой профиль</h2>
+                <div
+                    className="flex items-center gap-3 group"
+                    onMouseEnter={() => setIsHovering(true)}
+                    onMouseLeave={() => setIsHovering(false)}
+                >
+                    <h2 className="text-2xl font-bold text-gray-800">Мой профиль</h2>
+
+                    {/* Кнопка настроек с анимацией появления */}
+                    <button
+                        onClick={handleSettingsClick}
+                        className={`
+                            p-2 rounded-lg transition-all duration-200
+                            ${isHovering
+                                ? 'opacity-100 bg-gray-100 hover:bg-gray-200'
+                                : 'opacity-0 pointer-events-none'
+                            }
+                            text-gray-600 hover:text-gray-800
+                        `}
+                        aria-label="Настройки"
+                    >
+                        <SettingsIcon />
+                    </button>
+                </div>
+
                 <div className="relative">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
                         {user.username.charAt(0).toUpperCase()}
@@ -94,9 +123,8 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
                 </div>
 
                 <div className="pb-4 border-b border-gray-100">
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Email</label>
-                    <div className="text-lg font-semibold text-gray-800 flex items-center">
-                        {user.email}
+                    <label className="block text-sm font-medium text-gray-500 mb-1">
+                        Email
                         {user.is_active ? (
                             <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                 Подтверждён
@@ -106,6 +134,9 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
                                 Не подтверждён
                             </span>
                         )}
+                    </label>
+                    <div className="text-lg font-semibold text-gray-800 flex items-center">
+                        {user.email}
                     </div>
                 </div>
 
@@ -156,7 +187,7 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
                                     </>
                                 )}
                             </button>
-                            
+
                             {error && (
                                 <p className="mt-2 text-red-600 text-sm">
                                     {error}
@@ -190,12 +221,12 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
                         </>
                     )}
                 </button>
-                
+
                 <div className="mt-4 text-center text-sm text-gray-500">
                     <p>
                         Нужна помощь?{' '}
-                        <a 
-                            href="/support" 
+                        <a
+                            href="/support"
                             className="text-blue-600 hover:text-blue-800 font-medium"
                         >
                             Служба поддержки

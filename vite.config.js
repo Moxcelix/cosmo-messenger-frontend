@@ -17,8 +17,8 @@ export default defineConfig({
       'www.cosmomessenger.ru',
     ],
     proxy: {
-      '/api': {
-        target: 'http://backend:4000',
+      '/api/v2/auth': {
+        target: 'http://localhost:4000/',
         changeOrigin: true,
         secure: false,
       }
