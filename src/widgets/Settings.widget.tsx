@@ -5,6 +5,7 @@ import { translateAuthError } from '../utils/translateAuthError';
 import { EditIcon } from '../components/Icons';
 import { User } from '../types/models/User';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ChangePasswordModal } from '../components/ChangePassword.modal';
 
 interface SettingsWidgetProps {
     onCancel?: () => void;
@@ -25,6 +26,7 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
     const [emailError, setEmailError] = useState<string | null>(null);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
     const loading = authLoading || userLoading;
 
@@ -141,10 +143,6 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
             //     await changeUsername(loginValue);
             // }
 
-            // if (passwordValue) {
-            //     await changePassword(passwordValue);
-            // }
-
             // Очищаем поле пароля после сохранения
             setPasswordValue('');
             setEditingField(null);
@@ -208,9 +206,6 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
                             <EditIcon className="w-5 h-5" />
                         </button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                        Минимум 3 символа, только латиница и цифры
-                    </p>
                 </div>
 
                 {/* Email */}
@@ -277,16 +272,13 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
                         </div>
 
                         <button
-                            // onClick={() => handleEditClick('password')}
+                            onClick={() => setIsPasswordModalOpen(true)}
                             className="ml-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                             aria-label="Изменить пароль"
                         >
                             <EditIcon className="w-5 h-5" />
                         </button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                        Минимум 8 символов, заглавные и строчные буквы, цифры, спецсимволы
-                    </p>
                 </div>
             </div>
 
@@ -329,6 +321,12 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
                     Отменить
                 </button>
             </div>
+            <ChangePasswordModal
+                isOpen={isPasswordModalOpen}
+                onClose={() => setIsPasswordModalOpen(false)}
+                onSuccess={() => {}}
+            />
         </div>
+
     );
 };

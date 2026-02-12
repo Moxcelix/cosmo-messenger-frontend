@@ -4,6 +4,7 @@ import { TokenPair } from "../models/Token";
 import { RegisterRequest } from "../requests/RegisterRequest";
 import { User } from "../models/User";
 import { ChangeEmailRequest } from "../requests/ChangeEmailRequest";
+import { ChangePasswordRequest } from "../requests/CahngePasswordRequest";
 
 export interface AuthService {
     login(request: LoginRequest): Promise<TokenPair>
@@ -15,4 +16,5 @@ export interface AuthService {
     getUser(jwt: string): Promise<User>
     resendEmail(jwt: string): Promise<void>
     changeEmail(jwt: string, request: ChangeEmailRequest): Promise<void>
+    changePassword(jwt: string, request: ChangePasswordRequest): Promise<void>
 }

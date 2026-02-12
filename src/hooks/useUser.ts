@@ -48,7 +48,22 @@ export const useUser = () => {
         catch (err: unknown) {
             setError(getErrorMessage(err));
         }
-        finally{
+        finally {
+            setLoading(false);
+        }
+    }
+
+    const changePassword = async (new_password: string): Promise<void> => {
+        setError(null);
+        setLoading(true);
+
+        try {
+            await authFetch(authService.changePassword, { new_password })
+        }
+        catch (err: unknown) {
+            setError(getErrorMessage(err));
+        }
+        finally {
             setLoading(false);
         }
     }
@@ -58,6 +73,7 @@ export const useUser = () => {
         loading,
 
         changeEmail,
+        changePassword,
         getCurrentUser,
         resendActivationEmail,
     };

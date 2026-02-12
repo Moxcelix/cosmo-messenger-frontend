@@ -1,5 +1,6 @@
 import { TokenPair } from "../../types/models/Token";
 import { User } from "../../types/models/User";
+import { ChangePasswordRequest } from "../../types/requests/CahngePasswordRequest";
 import { ChangeEmailRequest } from "../../types/requests/ChangeEmailRequest";
 import { LoginRequest } from "../../types/requests/LoginRequest";
 import { RefreshRequest } from "../../types/requests/RefreshRequest";
@@ -121,6 +122,21 @@ export class AuthApi implements AuthService {
 
     async changeEmail(jwt: string, request: ChangeEmailRequest): Promise<void> {
         const response = await fetch(`${BASE_URL}/user/email/change`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${jwt}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(request),
+        });
+
+        if (!response.ok) {
+            await formatError(response);
+        }
+    }
+
+    async changePassword(jwt: string, request: ChangePasswordRequest): Promise<void>{
+         const response = await fetch(`${BASE_URL}/user/password/change`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${jwt}`,
