@@ -15,7 +15,9 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
         e.preventDefault();
         try {
             await login(username, password);
-            onSuccess?.();
+            if (!error) {
+                onSuccess?.();
+            }
         } catch (err) {
             console.log(err);
         }
@@ -81,8 +83,8 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
                         autoComplete="off"
                     />
                     <div className="mt-2 text-right">
-                        <a 
-                            href="/forgot-password" 
+                        <a
+                            href="/forgot-password"
                             className="text-sm text-blue-600 hover:text-blue-500 font-medium"
                         >
                             Забыли пароль?

@@ -7,18 +7,23 @@ import { getErrorMessage } from "../utils/getErrorMessage";
 export const useUser = () => {
     const { authFetch } = useAuth();
     const { authService } = useServices();
-    const [error, setError] = useState<string | null>(null);
+    const [emailError, setEmailError] = useState<string | null>(null);
+    const [usernameError, setUsernameError] = useState<string | null>(null);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [getUserError, setGetUserError] = useState<string | null>(null);
+    const [resendError, setResendError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
     const getCurrentUser = async (): Promise<User | null> => {
-        setError(null);
+        setGetUserError(null);
         setLoading(true);
 
         try {
             const user = await authFetch(authService.getUser);
             return user;
         } catch (err: unknown) {
-            setError(getErrorMessage(err));
+            setGetUserError(getErrorMessage(err));
             return null;
         } finally {
             setLoading(false);
@@ -26,27 +31,27 @@ export const useUser = () => {
     };
 
     const resendActivationEmail = async (): Promise<void> => {
-        setError(null);
+        setResendError(null);
         setLoading(true);
 
         try {
             await authFetch(authService.resendEmail);
         } catch (err: unknown) {
-            setError(getErrorMessage(err));
+            setResendError(getErrorMessage(err));
         } finally {
             setLoading(false);
         }
     };
 
     const changeEmail = async (new_email: string): Promise<void> => {
-        setError(null);
+        setEmailError(null);
         setLoading(true);
 
         try {
             await authFetch(authService.changeEmail, { new_email })
         }
         catch (err: unknown) {
-            setError(getErrorMessage(err));
+            setEmailError(getErrorMessage(err));
         }
         finally {
             setLoading(false);
@@ -54,27 +59,76 @@ export const useUser = () => {
     }
 
     const changePassword = async (new_password: string): Promise<void> => {
-        setError(null);
+        setPasswordError(null);
         setLoading(true);
 
         try {
             await authFetch(authService.changePassword, { new_password })
         }
         catch (err: unknown) {
-            setError(getErrorMessage(err));
+            setPasswordError(getErrorMessage(err));
         }
         finally {
             setLoading(false);
         }
     }
 
+    const changeUsername = async (new_username: string): Promise<void> => {
+        setUsernameError(null);
+        setLoading(true);
+
+        try {
+            await authFetch(authService.changeUsername, { new_username })
+        }
+        catch (err: unknown) {
+            setUsernameError(getErrorMessage(err));
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+
+    const deleteUser = async (): Promise<void> => {
+        setDeleteError(null);
+        setLoading(true);
+
+        try {
+            await authFetch(authService.deleteUser)
+        }
+        catch (err: unknown) {
+            setDeleteError(getErrorMessage(err));
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+
+    const resetAllErrors = () => {
+        setEmailError(null);
+        setUsernameError(null);
+        setPasswordError(null);
+        setDeleteError(null);
+        setGetUserError(null);
+        setResendError(null);
+    }
+
     return {
-        error,
+        emailError,
+        usernameError,
+        passwordError,
+        deleteError,
+        getUserError,
+        resendError,
+
+        error: emailError || usernameError || passwordError || deleteError || getUserError || resendError,
         loading,
 
         changeEmail,
         changePassword,
+        changeUsername,
         getCurrentUser,
         resendActivationEmail,
+        deleteUser,
+        resetAllErrors,
     };
 };

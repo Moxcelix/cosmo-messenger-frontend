@@ -9,15 +9,18 @@ export const useRegister = () => {
 
     const { authService } = useServices();
 
-    const register = useCallback(async (username: string, password: string, email: string): Promise<void> => {
-        setRegisterError(null)
-        setLoading(true)
+    const register = useCallback(async (username: string, password: string, email: string): Promise<boolean> => {
+        setRegisterError(null);
+        setLoading(true);
+        let ok = true;
         try {
             await authService.register({ username, password, email });
         } catch (err: unknown) {
             setRegisterError(getErrorMessage(err));
+            ok = false;
         }
-        setLoading(false)
+        setLoading(false);
+        return ok;
     }, [authService]);
 
     const validatePassword = useCallback(async(password:string):Promise<void>=>{

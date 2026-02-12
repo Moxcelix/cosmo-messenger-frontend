@@ -17,7 +17,7 @@ export const RegisterPage = () => {
         <div className="min-h-screen bg-gradient-to-br from-green-400 to-blue-600 flex items-center justify-center">
             <div className={styles.authContainer}>
                 <RegisterForm
-                    onSuccess={() => setTimeout(() => navigate('/new/login'), 1500)}
+                    onSuccess={() => {navigate('/new/login')}}
                 />
             </div>
         </div>

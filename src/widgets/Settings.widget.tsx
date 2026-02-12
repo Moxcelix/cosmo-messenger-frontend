@@ -6,6 +6,7 @@ import { EditIcon } from '../components/Icons';
 import { User } from '../types/models/User';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ChangePasswordModal } from '../components/ChangePassword.modal';
+import { DeleteAccountModal } from '../components/DeleteAccount.modal';
 
 interface SettingsWidgetProps {
     onCancel?: () => void;
@@ -15,7 +16,15 @@ interface SettingsWidgetProps {
 type EditableField = 'email' | 'login' | null;
 
 export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
-    const { changeEmail, getCurrentUser, error: apiError, loading: userLoading } = useUser();
+    const {
+        changeUsername,
+        changeEmail,
+        getCurrentUser,
+        resetAllErrors,
+        emailError,
+        usernameError,
+        loading: userLoading
+    } = useUser();
     const { authorized, loading: authLoading } = useAuth();
 
     const [user, setUser] = useState<User | null>(null);
@@ -23,10 +32,11 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
     const [emailValue, setEmailValue] = useState('');
     const [loginValue, setLoginValue] = useState('');
     const [passwordValue, setPasswordValue] = useState('');
-    const [emailError, setEmailError] = useState<string | null>(null);
+    const [emailFormatError, setEmailFormatError] = useState<string | null>(null);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const loading = authLoading || userLoading;
 
@@ -55,19 +65,25 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
         }
     }, [emailValue, loginValue, passwordValue, user]);
 
-    // Обработка ошибок API
+    // Обработка ошибок от API
     useEffect(() => {
-        if (apiError) {
-            setSaveError(translateAuthError(apiError));
+        if (emailError) {
+            setSaveError(translateAuthError(emailError));
         }
-    }, [apiError]);
+    }, [emailError]);
 
-    const validateEmail = (email: string): boolean => {
+    useEffect(() => {
+        if (usernameError) {
+            setSaveError(translateAuthError(usernameError));
+        }
+    }, [usernameError]);
+
+    const validateEmailFormat = (email: string): boolean => {
         const isValid = email.includes('@');
         if (!isValid) {
-            setEmailError('Email должен содержать символ @');
+            setEmailFormatError('Email должен содержать символ @');
         } else {
-            setEmailError(null);
+            setEmailFormatError(null);
         }
         return isValid;
     };
@@ -75,16 +91,19 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setEmailValue(value);
-        validateEmail(value);
+        validateEmailFormat(value);
+        // Очищаем ошибку сохранения при редактировании
+        setSaveError(null);
     };
 
     const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setLoginValue(e.target.value);
+        setSaveError(null);
     };
 
     const handleEditClick = (field: EditableField) => {
         setEditingField(field);
-        setEmailError(null);
+        setEmailFormatError(null);
         setSaveError(null);
     };
 
@@ -102,7 +121,7 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
             }
 
             setEditingField(null);
-            setEmailError(null);
+            setEmailFormatError(null);
             setSaveError(null);
         }
     };
@@ -110,9 +129,9 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
     const handleBlur = (field: EditableField) => {
         // Возвращаем исходное значение, если поле пустое или невалидное
         if (field === 'email' && user) {
-            if (!emailValue || !validateEmail(emailValue)) {
+            if (!emailValue || !validateEmailFormat(emailValue)) {
                 setEmailValue(user.email);
-                setEmailError(null);
+                setEmailFormatError(null);
             }
         }
         if (field === 'login' && user) {
@@ -128,27 +147,33 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
         setSaveError(null);
 
         // Валидация email перед сохранением
-        if (!validateEmail(emailValue)) {
+        if (!validateEmailFormat(emailValue)) {
             return;
         }
 
         try {
-            // Сохраняем только измененные поля
+            // Сохраняем email отдельно и проверяем ошибку
             if (emailValue !== user?.email) {
                 await changeEmail(emailValue);
             }
 
-            // Здесь будут вызовы для смены логина и пароля
-            // if (loginValue !== user?.username) {
-            //     await changeUsername(loginValue);
-            // }
+            // Сохраняем логин отдельно и проверяем ошибку
+            if (loginValue !== user?.username) {
+                await changeUsername(loginValue);
+            }
 
-            // Очищаем поле пароля после сохранения
-            setPasswordValue('');
+            // Обновляем данные пользователя
+            const updatedUser = await getCurrentUser();
+            if (updatedUser) {
+                setUser(updatedUser);
+            }
+
             setEditingField(null);
             onSave?.();
+
         } catch (err) {
             console.error('Ошибка сохранения:', err);
+            // Ошибки уже будут обработаны через emailError/usernameError
         }
     };
 
@@ -160,15 +185,13 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
         }
         setPasswordValue('');
         setEditingField(null);
-        setEmailError(null);
+        setEmailFormatError(null);
         setSaveError(null);
         onCancel?.();
     };
 
     if (!user) {
-        return (
-            <LoadingSpinner />
-        );
+        return <LoadingSpinner />;
     }
 
     return (
@@ -227,14 +250,14 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
                                     onChange={handleEmailChange}
                                     onKeyDown={(e) => handleKeyDown(e, 'email')}
                                     onBlur={() => handleBlur('email')}
-                                    className={`w-full text-lg text-gray-800 bg-gray-50 border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${emailError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                    className={`w-full text-lg text-gray-800 bg-gray-50 border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${emailFormatError ? 'border-red-300 bg-red-50' : 'border-gray-300'
                                         }`}
                                     autoFocus
                                     placeholder="Введите email"
                                 />
-                                {emailError && (
+                                {emailFormatError && (
                                     <p className="mt-1 text-sm text-red-600">
-                                        {emailError}
+                                        {emailFormatError}
                                     </p>
                                 )}
                             </div>
@@ -266,11 +289,9 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
                         Пароль
                     </label>
                     <div className="flex items-center justify-between group">
-
                         <div className="flex-1 text-lg font-semibold text-gray-800">
                             ••••••••
                         </div>
-
                         <button
                             onClick={() => setIsPasswordModalOpen(true)}
                             className="ml-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -295,10 +316,10 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
             <div className="mt-8 grid grid-cols-2 gap-4">
                 <button
                     onClick={handleSave}
-                    disabled={!hasChanges || loading || !!emailError}
+                    disabled={!hasChanges || loading || !!emailFormatError}
                     className={`
                         flex-1 px-6 py-2.5 rounded-lg font-medium transition-all
-                        ${hasChanges && !loading && !emailError
+                        ${hasChanges && !loading && !emailFormatError
                             ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
                             : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }
@@ -321,12 +342,33 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
                     Отменить
                 </button>
             </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-4">
+                <button
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    disabled={loading}
+                    className={`
+                        px-6 py-2.5 rounded-lg font-medium border transition-all
+                        ${!loading
+                            ? 'bg-red-600 hover:bg-red-700 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }
+                    `}
+                >
+                    Удалить аккаунт
+                </button>
+            </div>
+
             <ChangePasswordModal
                 isOpen={isPasswordModalOpen}
                 onClose={() => setIsPasswordModalOpen(false)}
-                onSuccess={() => {}}
+                onSuccess={() => { }}
+            />
+
+            <DeleteAccountModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
             />
         </div>
-
     );
 };

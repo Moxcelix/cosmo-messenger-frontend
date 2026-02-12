@@ -2,6 +2,7 @@ import { TokenPair } from "../../types/models/Token";
 import { User } from "../../types/models/User";
 import { ChangePasswordRequest } from "../../types/requests/CahngePasswordRequest";
 import { ChangeEmailRequest } from "../../types/requests/ChangeEmailRequest";
+import { ChangeUsernamRequest } from "../../types/requests/ChangeUsernameRequest";
 import { LoginRequest } from "../../types/requests/LoginRequest";
 import { RefreshRequest } from "../../types/requests/RefreshRequest";
 import { RegisterRequest } from "../../types/requests/RegisterRequest";
@@ -135,14 +136,43 @@ export class AuthApi implements AuthService {
         }
     }
 
-    async changePassword(jwt: string, request: ChangePasswordRequest): Promise<void>{
-         const response = await fetch(`${BASE_URL}/user/password/change`, {
+    async changePassword(jwt: string, request: ChangePasswordRequest): Promise<void> {
+        const response = await fetch(`${BASE_URL}/user/password/change`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${jwt}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(request),
+        });
+
+        if (!response.ok) {
+            await formatError(response);
+        }
+    }
+
+    async changeUsername(jwt: string, request: ChangeUsernamRequest): Promise<void> {
+        const response = await fetch(`${BASE_URL}/user/username/change`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${jwt}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(request),
+        });
+
+        if (!response.ok) {
+            await formatError(response);
+        }
+    }
+
+    async deleteUser(jwt: string): Promise<void> {
+        const response = await fetch(`${BASE_URL}/user/profile`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${jwt}`,
+                'Content-Type': 'application/json',
+            }
         });
 
         if (!response.ok) {

@@ -54,8 +54,10 @@ export const RegisterForm = ({ onSuccess } : RegisterFormProps) => {
         }
 
         try {
-            await register(username, password, email);
-            onSuccess?.(); 
+            let ok = await register(username, password, email);
+            if (ok) {
+                onSuccess?.();
+            }
         } catch (err: unknown) {
             console.log(err)
         }
