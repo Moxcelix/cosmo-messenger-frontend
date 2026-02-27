@@ -4,12 +4,14 @@ import { useLogoutRedirect } from "../hooks/useLogoutRedirect";
 import { NavigationPanel } from "../widgets/NavigationPanel.widget";
 import { NavigationLayout } from '../layout/Navigation.layout';
 import { SettingsWidget } from '../widgets/Settings.widget';
+import SpacePattern from '../components/SpacePattern';
 
 export const SettingsPage = () => {
     const { loading } = useLogoutRedirect('/new/login');
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-300 to-blue-300 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center">
+            <SpacePattern opacity={0.45} />
             <div className={styles.baseContainer}>
                 <NavigationLayout>
                     <NavigationPanel />

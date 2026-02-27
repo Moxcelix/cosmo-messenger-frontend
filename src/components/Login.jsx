@@ -1,14 +1,15 @@
 import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom' 
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuthOld } from '../context/AuthContextOld'
-import PasswordInput from './PasswordInput' 
+import PasswordInput from './PasswordInput'
+import SpacePattern from '../components/SpacePattern';
 
 const Login = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  
+
   const { login } = useAuthOld()
   const navigate = useNavigate()
 
@@ -32,11 +33,11 @@ const Login = () => {
       }
 
       const authData = await response.json()
-      
+
       login(authData)
-      
+
       navigate('/chats')
-      
+
     } catch (err) {
       setError(err.message)
     } finally {
@@ -45,12 +46,13 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center">
+      <SpacePattern opacity={0.45} />
       <div className="bg-white p-8 rounded-2xl shadow-2xl w-96">
         <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">
           Войти в Cosmo
         </h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -65,7 +67,7 @@ const Login = () => {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Пароль
@@ -95,8 +97,8 @@ const Login = () => {
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-            <p>Нет аккаунта? <Link to="/register" className="text-blue-500 hover:text-blue-600">Зарегистрироваться</Link></p>
-          
+          <p>Нет аккаунта? <Link to="/register" className="text-blue-500 hover:text-blue-600">Зарегистрироваться</Link></p>
+
         </div>
       </div>
     </div>

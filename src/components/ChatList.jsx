@@ -6,6 +6,7 @@ import ChatListItem from './ChatListItem'
 import ProtectedRoute from './ProtectedRoute'
 import UserSearch from './UserSearch'
 import UserSearchResult from './UserSearchResult'
+import SpacePattern from '../components/SpacePattern';
 
 const ChatList = () => {
     const { authFetch, logout, user, loading: authLoading, accessToken } = useAuthOld()

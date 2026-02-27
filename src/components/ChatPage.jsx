@@ -4,6 +4,7 @@ import { useAuthOld } from '../context/AuthContextOld'
 import { useChat } from '../hooks/useChat'
 import ProtectedRoute from './ProtectedRoute'
 import ChatLayout from '../components/ChatLayout'
+import SpacePattern from '../components/SpacePattern';
 
 const ChatPage = () => {
     const { chatId } = useParams()

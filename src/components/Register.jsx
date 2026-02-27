@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-
+import SpacePattern from '../components/SpacePattern';
 import PasswordInput from './PasswordInput'
 
 const Register = () => {
@@ -99,7 +99,8 @@ const Register = () => {
     const hasUsername = formData.username.length > 0
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-400 to-blue-600 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center">
+        <SpacePattern opacity={0.45} />
             <div className="bg-white p-8 rounded-2xl shadow-2xl w-96">
                 <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">
                     Регистрация в Cosmo
