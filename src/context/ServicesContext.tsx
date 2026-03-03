@@ -2,10 +2,13 @@ import { createContext, useContext, ReactNode, useMemo } from 'react';
 import { AuthApi } from '../data/api/AuthApi';
 import { AuthLocalStorage } from '../data/storage/AuthLocalStorage';
 import { AuthService } from '../types/services/AuthService';
+import { SocialService } from '../types/services/SocialService';
+import { SocialApi } from '../data/api/SocialApi';
 
 export interface Services {
     authService: AuthService;
     authStorage: AuthLocalStorage;
+    socialService: SocialService;
 }
 
 const ServicesContext = createContext<Services | undefined>(undefined);
@@ -28,6 +31,7 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({ children }) 
     const services = useMemo<Services>(() => ({
         authService: new AuthApi(),
         authStorage: new AuthLocalStorage(),
+        socialService: new SocialApi(),
     }), []);
 
     return (

@@ -5,16 +5,21 @@ import { useUser } from '../hooks/useUser';
 import { User } from '../types/models/User';
 import { SettingsIcon } from '../components/Icons';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { useProfile } from '../hooks/useProfile';
+import { Profile } from '../types/models/Profile';
 
 interface UserAccountProps {
+    username?: string;
     onLogout?: () => void;
     onEmailResent?: () => void;
 }
 
-export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
+export const UserProfile = ({ username, onLogout, onEmailResent }: UserAccountProps) => {
     const navigate = useNavigate();
     const { authorized, logout, loading: authLoading } = useAuth();
-    const { getCurrentUser, resendActivationEmail, error, loading: userLoading } = useUser();
+    const { getCurrentUser, resendActivationEmail, error: userError, loading: userLoading } = useUser();
+    const { getUserProfile, error: profileError, loading: profileLoading } = useProfile();
+    const [profile, setProfile] = useState<Profile | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [resending, setResending] = useState(false);
     const [logoutLoading, setLogoutLoading] = useState(false);
@@ -23,10 +28,15 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
     const loading = authLoading || userLoading || logoutLoading;
 
     useEffect(() => {
-        if (authorized && !userLoading) {
-            getCurrentUser().then(setUser).catch(console.error);
+        if (!profileLoading) {
+            if (username) {
+                getUserProfile(username).then(setProfile).catch(console.error);
+            }
         }
-    }, [authorized]);
+        if (!userLoading) {
+            getCurrentUser().then(setUser).catch(console.error)
+        }
+    }, [authorized, username]);
 
     const handleResend = async () => {
         setResending(true);
@@ -57,13 +67,13 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
         navigate('/new/settings');
     };
 
-    if (loading && !user) {
+    if (loading && !profile) {
         return (
-            <LoadingSpinner/>
+            <LoadingSpinner />
         );
     }
 
-    if (!user) {
+    if (!profile) {
         return (
             <div className="rounded-lg bg-red-50 p-6 border border-red-200">
                 <div className="flex items-start">
@@ -79,6 +89,8 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
         );
     }
 
+    const isMine = profile?.user_id == user?.id
+
     return (
         <div className="bg-white w-full">
             <div className="flex items-center justify-between mb-6">
@@ -87,7 +99,9 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
                 >
-                    <h2 className="text-2xl font-bold text-gray-800">Мой профиль</h2>
+                    {isMine && (
+                        <h2 className="text-2xl font-bold text-gray-800">Мой профиль</h2>
+                        )}
 
                     {/* Кнопка настроек с анимацией появления */}
                     <button
@@ -108,9 +122,9 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
 
                 <div className="relative">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                        {user.username.charAt(0).toUpperCase()}
+                        {profile.username.charAt(0).toUpperCase()}
                     </div>
-                    {user.is_active && (
+                    {profile.is_active && (
                         <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
                     )}
                 </div>
@@ -118,14 +132,14 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
 
             <div className="space-y-4 mb-6">
                 <div className="pb-4 border-b border-gray-100">
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Логин</label>
-                    <div className="text-lg font-semibold text-gray-800">{user.username}</div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">Имя пользователя</label>
+                    <div className="text-lg font-semibold text-gray-800">{profile.username}</div>
                 </div>
 
-                <div className="pb-4 border-b border-gray-100">
+                {profile.email && (<div className="pb-4 border-b border-gray-100">
                     <label className="block text-sm font-medium text-gray-500 mb-1">
                         Email
-                        {user.is_active ? (
+                        {isMine && (profile.is_active ? (
                             <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                 Подтверждён
                             </span>
@@ -133,18 +147,18 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
                             <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                 Не подтверждён
                             </span>
-                        )}
+                        ))}
                     </label>
                     <div className="text-lg font-semibold text-gray-800 flex items-center">
-                        {user.email}
+                        {profile.email}
                     </div>
-                </div>
+                </div>)}
 
-                {user.created_at && (
+                {profile.created_at && (
                     <div>
                         <label className="block text-sm font-medium text-gray-500 mb-1">Дата регистрации</label>
                         <div className="text-gray-700">
-                            {new Date(user.created_at).toLocaleDateString('ru-RU', {
+                            {new Date(profile.created_at).toLocaleDateString('ru-RU', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric'
@@ -154,7 +168,7 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
                 )}
             </div>
 
-            {!user.is_active && (
+            {isMine && !profile.is_active && (
                 <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-start">
                         <svg className="w-5 h-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,9 +202,9 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
                                 )}
                             </button>
 
-                            {error && (
+                            {userError && (
                                 <p className="mt-2 text-red-600 text-sm">
-                                    {error}
+                                    {userError}
                                 </p>
                             )}
                         </div>
@@ -198,30 +212,7 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
                 </div>
             )}
 
-            <div className="pt-4 border-t border-gray-200">
-                <button
-                    onClick={handleLogout}
-                    disabled={logoutLoading}
-                    className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-red-300 disabled:to-red-400 text-white font-semibold py-3 px-4 rounded-lg transition-all flex items-center justify-center"
-                >
-                    {logoutLoading ? (
-                        <>
-                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Выход...
-                        </>
-                    ) : (
-                        <>
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                            Выйти из аккаунта
-                        </>
-                    )}
-                </button>
-
+            {isMine && (<div className="pt-4 border-t border-gray-200">
                 <div className="mt-4 text-center text-sm text-gray-500">
                     <p>
                         Нужна помощь?{' '}
@@ -233,7 +224,7 @@ export const UserAccount = ({ onLogout, onEmailResent }: UserAccountProps) => {
                         </a>
                     </p>
                 </div>
-            </div>
+            </div>)}
         </div>
     );
 };

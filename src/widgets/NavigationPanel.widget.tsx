@@ -1,16 +1,18 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useUser } from "../hooks/useUser";
 import { ProfileIcon, LogoutIcon, SettingsIcon } from "../components/Icons";
-import { User } from "../types/models/User";
+import { useProfile } from "../hooks/useProfile";
+import { Profile } from "../types/models/Profile";
+import { useUser } from "../hooks/useUser";
 
 export const NavigationPanel = () => {
     const { logout, authorized } = useAuth();
     const { getCurrentUser } = useUser();
+    const { getCurrentProfile } = useProfile();
     const navigate = useNavigate();
     const location = useLocation();
-    const [user, setUser] = useState<User | null>(null);
+    const [profile, setProfile] = useState<Profile | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -29,7 +31,7 @@ export const NavigationPanel = () => {
     // Загрузка данных пользователя
     useEffect(() => {
         if (authorized) {
-            getCurrentUser().then(setUser);
+            getCurrentProfile().then(setProfile);
         }
     }, [authorized]);
 
@@ -40,9 +42,10 @@ export const NavigationPanel = () => {
         navigate('/new/chats');
     };
 
-    const handleProfileClick = () => {
+    const handleProfileClick = async () => {
         setIsMenuOpen(false);
-        navigate('/new/profile');
+        const user = await getCurrentUser();
+        navigate(`/new/profile/${user?.username}`);
     };
 
     const handleSettingsClick = () => {
@@ -72,18 +75,18 @@ export const NavigationPanel = () => {
                                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                 aria-label="Назад"
                             >
-                                <svg 
-                                    className="w-5 h-5 text-gray-600" 
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    viewBox="0 0 24 24" 
+                                <svg
+                                    className="w-5 h-5 text-gray-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
                                     xmlns="http://www.w3.org/2000/svg"
                                 >
-                                    <path 
-                                        strokeLinecap="round" 
-                                        strokeLinejoin="round" 
-                                        strokeWidth={2} 
-                                        d="M15 19l-7-7 7-7" 
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M15 19l-7-7 7-7"
                                     />
                                 </svg>
                             </button>
@@ -97,33 +100,33 @@ export const NavigationPanel = () => {
                             className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-lg transition-colors"
                         >
                             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
-                                {user?.username ? user.username[0].toUpperCase() : 'U'}
+                                {profile?.username ? profile.username[0].toUpperCase() : 'U'}
                             </div>
-                            <svg 
+                            <svg
                                 className={`w-4 h-4 text-gray-600 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24" 
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg"
                             >
-                                <path 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round" 
-                                    strokeWidth={2} 
-                                    d="M19 9l-7 7-7-7" 
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 9l-7 7-7-7"
                                 />
                             </svg>
                         </button>
 
                         {/* Контекстное меню */}
                         {isMenuOpen && (
-                            <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                            <div className="absolute right-0 mt-3 w-56 bg-white  shadow-lg border border-gray-200 py-1 z-50">
                                 <div className="px-4 py-3 border-b border-gray-100">
                                     <p className="text-sm font-medium text-gray-900">
-                                        {user?.username || 'Пользователь'}
+                                        {profile?.username || 'Пользователь'}
                                     </p>
                                     <p className="text-xs text-gray-500 truncate">
-                                        {user?.email || ''}
+                                        {profile?.email || ''}
                                     </p>
                                 </div>
 
@@ -139,7 +142,7 @@ export const NavigationPanel = () => {
                                     onClick={handleSettingsClick}
                                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
                                 >
-                                    <SettingsIcon/>
+                                    <SettingsIcon />
                                     Настройки
                                 </button>
 

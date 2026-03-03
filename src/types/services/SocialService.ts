@@ -1,6 +1,6 @@
 import { Profile } from "../models/Profile";
 
-export interface ProfileService{
+export interface SocialService{
     profileMe(jwt: string): Promise<Profile>
     profileUser(jwt: string, username: string): Promise<Profile>
 }

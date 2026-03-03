@@ -79,7 +79,7 @@ export class AuthApi implements AuthService {
     }
 
     async getUser(jwt: string): Promise<User> {
-        const response = await fetch(`${BASE_URL}/user/profile`, {
+        const response = await fetch(`${BASE_URL}/user`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${jwt}`,
@@ -167,7 +167,7 @@ export class AuthApi implements AuthService {
     }
 
     async deleteUser(jwt: string): Promise<void> {
-        const response = await fetch(`${BASE_URL}/user/profile`, {
+        const response = await fetch(`${BASE_URL}/user`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${jwt}`,

@@ -52,6 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         try {
             authStorage.clearToken();
+            authStorage.clearUser();
             setAuthorized(false);
         } catch (err: unknown) {
             setError(getErrorMessage(err));

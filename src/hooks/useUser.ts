@@ -6,7 +6,7 @@ import { getErrorMessage } from "../utils/getErrorMessage";
 
 export const useUser = () => {
     const { authFetch } = useAuth();
-    const { authService } = useServices();
+    const { authService, authStorage } = useServices();
     const [emailError, setEmailError] = useState<string | null>(null);
     const [usernameError, setUsernameError] = useState<string | null>(null);
     const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -16,11 +16,21 @@ export const useUser = () => {
     const [loading, setLoading] = useState(false);
 
     const getCurrentUser = async (): Promise<User | null> => {
+        const user = authStorage.getUser()
+        if (user){
+            return user
+        }
+
+        return refreshCurrentUser()
+    };
+
+    const refreshCurrentUser =  async (): Promise<User | null> => {
         setGetUserError(null);
         setLoading(true);
 
         try {
             const user = await authFetch(authService.getUser);
+            authStorage.setUser(user)
             return user;
         } catch (err: unknown) {
             setGetUserError(getErrorMessage(err));
@@ -79,6 +89,7 @@ export const useUser = () => {
 
         try {
             await authFetch(authService.changeUsername, { new_username })
+            await refreshCurrentUser()
         }
         catch (err: unknown) {
             setUsernameError(getErrorMessage(err));
@@ -94,6 +105,7 @@ export const useUser = () => {
 
         try {
             await authFetch(authService.deleteUser)
+            authStorage.clearUser()
         }
         catch (err: unknown) {
             setDeleteError(getErrorMessage(err));
@@ -127,6 +139,7 @@ export const useUser = () => {
         changePassword,
         changeUsername,
         getCurrentUser,
+        refreshCurrentUser,
         resendActivationEmail,
         deleteUser,
         resetAllErrors,

@@ -7,6 +7,8 @@ import { User } from '../types/models/User';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ChangePasswordModal } from '../components/ChangePassword.modal';
 import { DeleteAccountModal } from '../components/DeleteAccount.modal';
+import { useProfile } from '../hooks/useProfile';
+import { Profile } from '../types/models/Profile';
 
 interface SettingsWidgetProps {
     onCancel?: () => void;
@@ -19,15 +21,15 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
     const {
         changeUsername,
         changeEmail,
-        getCurrentUser,
         resetAllErrors,
         emailError,
         usernameError,
         loading: userLoading
     } = useUser();
     const { authorized, loading: authLoading } = useAuth();
+    const {getCurrentProfile, error:profileError, loading: profileLoading} = useProfile()
 
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setProfile] = useState<Profile | null>(null);
     const [editingField, setEditingField] = useState<EditableField>(null);
     const [emailValue, setEmailValue] = useState('');
     const [loginValue, setLoginValue] = useState('');
@@ -38,11 +40,11 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    const loading = authLoading || userLoading;
+    const loading = authLoading || userLoading || profileLoading;
 
     useEffect(() => {
         if (authorized && !userLoading) {
-            getCurrentUser().then(setUser).catch(console.error);
+            getCurrentProfile().then(setProfile).catch(console.error);
         }
     }, [authorized]);
 
@@ -163,9 +165,9 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
             }
 
             // Обновляем данные пользователя
-            const updatedUser = await getCurrentUser();
-            if (updatedUser) {
-                setUser(updatedUser);
+            const updatedProfile = await getCurrentProfile();
+            if (updatedProfile) {
+                setProfile(updatedProfile);
             }
 
             setEditingField(null);
