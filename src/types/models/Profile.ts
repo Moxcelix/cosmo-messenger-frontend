@@ -5,6 +5,7 @@ export interface Profile {
     email: string
     display_name: string
     avatar_url: string
+    bio: string
     is_active: boolean
     is_deleted: boolean
     created_at: string

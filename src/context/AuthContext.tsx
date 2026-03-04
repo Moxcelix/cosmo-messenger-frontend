@@ -13,6 +13,7 @@ interface AuthContextType {
     logout: () => Promise<void>;
     refresh: () => Promise<void>;
     authFetch: <T>(apiCall: AuthApiCall<T>, ...args: any[]) => Promise<T>;
+    optionalAuthFetch: <T>(apiCall: AuthApiCall<T>, ...args: any[]) => Promise<T>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -114,6 +115,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         [authStorage, refresh]
     );
 
+    const optionalAuthFetch = useCallback(async<T extends any>(apiCall: AuthApiCall<T>, ...data: any[]): Promise<T> => {
+        let currentToken = authStorage.getToken()?.access_token;
+        if (!currentToken) {
+            currentToken = "";
+        }
+
+        try {
+            setLoading(true)
+            return await apiCall(currentToken, ...data);
+        } catch (err: unknown) {
+            const isUnauthorized = err instanceof ApiError && err.status === 401;
+
+            if (isUnauthorized) {
+                await refresh();
+
+                const newToken = authStorage.getToken()?.access_token;
+                if (!newToken) {
+                    throw new Error('Token refresh failed');
+                }
+                return await apiCall(newToken, ...data);
+            }
+            throw err;
+        }
+        finally{
+            setLoading(false)
+        }
+    },
+        [authStorage, refresh]
+    );
+
     const value = {
         error,
         loading,
@@ -122,6 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logout,
         refresh,
         authFetch,
+        optionalAuthFetch,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

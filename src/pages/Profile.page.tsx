@@ -8,7 +8,7 @@ import SpacePattern from '../components/SpacePattern';
 import { useParams } from 'react-router-dom';
 
 export const ProfilePage = () => {
-    const { loading } = useLogoutRedirect('/new/login');
+    //const { loading } = useLogoutRedirect('/new/login');
     const { username } = useParams<{ username?: string }>();
 
     return (

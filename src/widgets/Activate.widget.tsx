@@ -20,7 +20,7 @@ export const ActivationWidget = () => {
                     if (progressInterval.current) {
                         clearInterval(progressInterval.current);
                     }
-                    navigate('/new/profile');
+                    navigate('/new/chats');
                 }
             }, 1000);
 
@@ -107,7 +107,7 @@ export const ActivationWidget = () => {
 
                         <div className="pt-4">
                             <button
-                                onClick={() => navigate('/new/profile')}
+                                onClick={() => navigate('/new/chats')}
                                 className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-lg transition-all transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
                             >
                                 Перейти в профиль сейчас

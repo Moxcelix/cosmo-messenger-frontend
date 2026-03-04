@@ -59,17 +59,17 @@ export const NavigationPanel = () => {
         navigate('/new/login');
     };
 
-    if (!authorized) {
-        return null;
-    }
+    // if (!authorized) {
+    //     return null;
+    // }
 
     return (
         <nav className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
-                    {/* Левая часть: кнопка назад и логотип */}
-                    <div className="flex items-center gap-4">
-                        {isNotChats && (
+                    {/* Левая часть: кнопка назад*/}
+                    <div className="flex items-center gap-4 w-16">
+                        {authorized && isNotChats && (
                             <button
                                 onClick={handleBack}
                                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -93,16 +93,21 @@ export const NavigationPanel = () => {
                         )}
                     </div>
 
-                    {/* Правая часть: аватар пользователя */}
-                    <div className="relative" ref={menuRef}>
-                        <button
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
-                                {profile?.username ? profile.username[0].toUpperCase() : 'U'}
-                            </div>
-                            <svg
+                    {/* Логотип */}
+                    <div className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">
+                        космо
+                    </div>
+                    <div className="w-16 flex items-center flex-row-reverse">
+                        {/* Правая часть: аватар пользователя */}
+                        {authorized ? (<div className="relative" ref={menuRef}>
+                            <button
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
+                                    {profile?.username ? profile.username[0].toUpperCase() : 'U'}
+                                </div>
+                                {/* <svg
                                 className={`w-4 h-4 text-gray-600 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
                                 fill="none"
                                 stroke="currentColor"
@@ -115,45 +120,63 @@ export const NavigationPanel = () => {
                                     strokeWidth={2}
                                     d="M19 9l-7 7-7-7"
                                 />
-                            </svg>
-                        </button>
+                            </svg> */}
+                            </button>
 
-                        {/* Контекстное меню */}
-                        {isMenuOpen && (
-                            <div className="absolute right-0 mt-3 w-56 bg-white  shadow-lg border border-gray-200 py-1 z-50">
-                                <div className="px-4 py-3 border-b border-gray-100">
-                                    <p className="text-sm font-medium text-gray-900">
-                                        {profile?.username || 'Пользователь'}
-                                    </p>
-                                    <p className="text-xs text-gray-500 truncate">
-                                        {profile?.email || ''}
-                                    </p>
+                            {/* Контекстное меню */}
+                            {isMenuOpen && (
+                                <div
+                                    className="fixed w-56 bg-white shadow-lg border border-gray-200 py-1 z-50"
+                                    style={{
+                                        top: '4rem', // Высота навбара (h-16 = 4rem)
+                                        right: '0',
+                                    }}
+                                >
+                                    {/* Содержимое меню */}
+                                    <div className="px-4 py-3 border-b border-gray-100">
+                                        <p className="text-sm font-medium text-gray-900">
+                                            {profile?.username || 'Пользователь'}
+                                        </p>
+                                        <p className="text-xs text-gray-500 truncate">
+                                            {profile?.email || ''}
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        onClick={handleProfileClick}
+                                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                                    >
+                                        <ProfileIcon />
+                                        Профиль
+                                    </button>
+
+                                    <button
+                                        onClick={handleSettingsClick}
+                                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                                    >
+                                        <SettingsIcon />
+                                        Настройки
+                                    </button>
+
+                                    <div className="border-t border-gray-100 my-1"></div>
+
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-3"
+                                    >
+                                        <LogoutIcon />
+                                        Выйти
+                                    </button>
                                 </div>
-
+                            )}
+                        </div>) : (
+                            <div className="relative" >
                                 <button
-                                    onClick={handleProfileClick}
-                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                                    onClick={handleBack}
+                                    className="right-0 p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-700"
+                                    aria-label="Войти"
                                 >
-                                    <ProfileIcon />
-                                    Профиль
-                                </button>
-
-                                <button
-                                    onClick={handleSettingsClick}
-                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
-                                >
-                                    <SettingsIcon />
-                                    Настройки
-                                </button>
-
-                                <div className="border-t border-gray-100 my-1"></div>
-
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-3"
-                                >
-                                    <LogoutIcon />
-                                    Выйти
+                                    Войти
                                 </button>
                             </div>
                         )}
