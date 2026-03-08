@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useUser } from '../hooks/useUser';
-import { EditIcon, SettingsIcon, CheckIcon, XIcon } from '../components/Icons';
+import { EditIcon, SettingsIcon, CheckIcon, XIcon, CameraIcon } from '../components/Icons';
 import { LoadingSpinner } from '../components/LoadingSpinner';
-import { useProfile } from '../hooks/useProfile';
+import { useProfile } from '../context/ProfileContext';
 import { Profile } from '../types/models/Profile';
 import { User } from '../types/models/User';
 import { translateSocialError } from '../utils/translateSocialError';
@@ -22,18 +22,22 @@ export const UserProfile = ({ username, onLogout, onEmailResent }: UserAccountPr
     const { authorized, logout, loading: authLoading } = useAuth();
     const { getCurrentUser, resendActivationEmail, error: userError, loading: userLoading } = useUser();
     const {
+        profile: myProfile,
         getUserProfile,
         changeBio,
         changeDisplayName,
+        changeAvatar,
         resetAllErrors,
+        updateAvatar,
         error: profileError,
         loading: profileLoading,
         bioError,
-        displayNameError
+        displayNameError,
+        avatarError,
     } = useProfile();
 
-    const [profile, setProfile] = useState<Profile | null>(null);
     const [user, setUser] = useState<User | null>(null);
+    const [profile, setProfile] = useState<Profile | null>(null);
     const [resending, setResending] = useState(false);
     const [logoutLoading, setLogoutLoading] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
@@ -45,14 +49,18 @@ export const UserProfile = ({ username, onLogout, onEmailResent }: UserAccountPr
     const [saveError, setSaveError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const loading = authLoading || userLoading || logoutLoading || (profileLoading && !profile);
+
+    const isMine = authorized && profile?.user_id === user?.id;
 
     useEffect(() => {
         const loadData = async () => {
             try {
                 if (username) {
                     const profileData = await getUserProfile(username);
-                    setProfile(profileData);
+                    setProfile(profileData)
                     console.log(profileData)
                     console.log(profileData?.is_active)
                     if (profileData) {
@@ -77,7 +85,6 @@ export const UserProfile = ({ username, onLogout, onEmailResent }: UserAccountPr
             if (!profile) return;
             if (bioValue !== profile.bio) {
                 if (!bioError) {
-                    setProfile({ ...profile, bio: bioValue });
                     setEditingField(null);
                 }
                 else {
@@ -85,7 +92,6 @@ export const UserProfile = ({ username, onLogout, onEmailResent }: UserAccountPr
                 }
             } else if (displayNameValue !== profile.display_name) {
                 if (!displayNameError) {
-                    setProfile({ ...profile, display_name: displayNameValue });
                     setEditingField(null);
                 }
                 else {
@@ -94,6 +100,12 @@ export const UserProfile = ({ username, onLogout, onEmailResent }: UserAccountPr
             }
         }
     }, [profileLoading])
+
+    useEffect(() => {
+        if (isMine) {
+            setProfile(myProfile)
+        }
+    }, [myProfile])
 
     const handleResend = async () => {
         setResending(true);
@@ -173,6 +185,23 @@ export const UserProfile = ({ username, onLogout, onEmailResent }: UserAccountPr
         //setSaveError(null);
     };
 
+    const handleAvatarClick = () => {
+        if (isMine && profile?.is_active) {
+            fileInputRef.current?.click();
+        }
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        console.log(file)
+
+        const meta = await changeAvatar(file)
+
+        //updateAvatar()
+    };
+
     if (loading && !profile) {
         return <LoadingSpinner />;
     }
@@ -194,8 +223,6 @@ export const UserProfile = ({ username, onLogout, onEmailResent }: UserAccountPr
             </div>
         );
     }
-
-    const isMine = authorized && profile?.user_id === user?.id;
 
     return (
         <div className="bg-white w-full">
@@ -230,13 +257,43 @@ export const UserProfile = ({ username, onLogout, onEmailResent }: UserAccountPr
                 </div>
 
                 <div className="relative">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                        {profile.username?.charAt(0).toUpperCase() || '?'}
+                    <div
+                        className={`w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg overflow-hidden ${isMine && profile?.is_active ? 'cursor-pointer group' : ''
+                            }`}
+                        onClick={handleAvatarClick}
+                    >
+                        {profile?.avatar_url ? (
+                            <img
+                                src={profile.avatar_url}
+                                alt="avatar"
+                                className={`w-full h-full object-cover transition-all duration-200 ${isMine && profile?.is_active ? 'group-hover:brightness-50' : ''
+                                    }`}
+                            />
+                        ) : (
+                            <div className="avatar-placeholder">
+                                {profile?.username?.charAt(0).toUpperCase() || '?'}
+                            </div>
+                        )}
+
+                        {/* Иконка фотоаппарата при наведении */}
+                        {isMine && profile?.is_active && (
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <CameraIcon className="w-8 h-8 text-white" />
+                            </div>
+                        )}
                     </div>
-                    {profile.is_active && (
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
-                    )}
+
+                    {/* Скрытый input для загрузки файла */}
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        className="hidden"
+                    />
                 </div>
+
+
             </div>
 
             {/* Информация профиля */}
@@ -268,21 +325,21 @@ export const UserProfile = ({ username, onLogout, onEmailResent }: UserAccountPr
                                         disabled={isSaving}
                                     />
                                     <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={handleSave}
-                                        disabled={isSaving}
-                                        className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                                    >
-                                        {isSaving ? 'Сохранение...' : 'Сохранить'}
-                                    </button>
-                                    <button
-                                        onClick={handleCancelEdit}
-                                        disabled={isSaving}
-                                        className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors"
-                                    >
-                                        Отмена
-                                    </button>
-                                </div>
+                                        <button
+                                            onClick={handleSave}
+                                            disabled={isSaving}
+                                            className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                        >
+                                            {isSaving ? 'Сохранение...' : 'Сохранить'}
+                                        </button>
+                                        <button
+                                            onClick={handleCancelEdit}
+                                            disabled={isSaving}
+                                            className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                                        >
+                                            Отмена
+                                        </button>
+                                    </div>
                                 </div>
 
                             </div>

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useServices } from "../context/ServicesContext";
 import { getErrorMessage } from "../utils/getErrorMessage";
 import { useAuth } from "../context/AuthContext";
+import { useProfile } from "../context/ProfileContext";
 
 export const useActivate = () => {
     const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'invalid'>('loading');
@@ -12,6 +13,7 @@ export const useActivate = () => {
 
     const { authService } = useServices()
     const { refresh } = useAuth()
+    const { updateActive } = useProfile()
 
     useEffect(() => {
         const checkToken = async (): Promise<void> => {
@@ -24,6 +26,7 @@ export const useActivate = () => {
             try {
                 await authService.activateConfirm(token)
                 setStatus('success')
+                updateActive(true)
                 try {
                     await refresh()
                 }

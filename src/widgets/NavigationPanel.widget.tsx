@@ -2,17 +2,16 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ProfileIcon, LogoutIcon, SettingsIcon } from "../components/Icons";
-import { useProfile } from "../hooks/useProfile";
+import { useProfile } from '../context/ProfileContext';
 import { Profile } from "../types/models/Profile";
 import { useUser } from "../hooks/useUser";
 
 export const NavigationPanel = () => {
     const { logout, authorized } = useAuth();
     const { getCurrentUser } = useUser();
-    const { getCurrentProfile } = useProfile();
+    const { profile } = useProfile();
     const navigate = useNavigate();
     const location = useLocation();
-    const [profile, setProfile] = useState<Profile | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -27,13 +26,6 @@ export const NavigationPanel = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    // Загрузка данных пользователя
-    useEffect(() => {
-        if (authorized) {
-            getCurrentProfile().then(setProfile);
-        }
-    }, [authorized]);
 
     // Определяем, находимся ли мы не в чатах (показываем кнопку назад)
     const isNotChats = !location.pathname.includes('/new/chats');
@@ -104,8 +96,20 @@ export const NavigationPanel = () => {
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                                 className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-lg transition-colors"
                             >
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
-                                    {profile?.username ? profile.username[0].toUpperCase() : 'U'}
+                                <div className="relative">
+                                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                                        {profile?.avatar_url ? (
+                                            <img
+                                                src={profile.avatar_url}
+                                                alt="avatar"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="avatar-placeholder">
+                                                {profile?.username?.charAt(0).toUpperCase() || '?'}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 {/* <svg
                                 className={`w-4 h-4 text-gray-600 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}

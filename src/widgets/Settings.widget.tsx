@@ -3,11 +3,10 @@ import { useUser } from '../hooks/useUser';
 import { useAuth } from '../context/AuthContext';
 import { translateAuthError } from '../utils/translateAuthError';
 import { EditIcon } from '../components/Icons';
-import { User } from '../types/models/User';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ChangePasswordModal } from '../components/ChangePassword.modal';
 import { DeleteAccountModal } from '../components/DeleteAccount.modal';
-import { useProfile } from '../hooks/useProfile';
+import { useProfile } from '../context/ProfileContext';
 import { Profile } from '../types/models/Profile';
 
 interface SettingsWidgetProps {
@@ -27,9 +26,8 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
         loading: userLoading
     } = useUser();
     const { authorized, loading: authLoading } = useAuth();
-    const {getCurrentProfile, error:profileError, loading: profileLoading} = useProfile()
+    const { profile, error: profileError, loading: profileLoading, updateUsername, updateEmail } = useProfile()
 
-    const [user, setProfile] = useState<Profile | null>(null);
     const [editingField, setEditingField] = useState<EditableField>(null);
     const [emailValue, setEmailValue] = useState('');
     const [loginValue, setLoginValue] = useState('');
@@ -42,30 +40,24 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
 
     const loading = authLoading || userLoading || profileLoading;
 
-    useEffect(() => {
-        if (authorized && !userLoading) {
-            getCurrentProfile().then(setProfile).catch(console.error);
-        }
-    }, [authorized]);
-
     // Инициализация значений при загрузке пользователя
     useEffect(() => {
-        if (user) {
-            setEmailValue(user.email);
-            setLoginValue(user.username);
+        if (profile) {
+            setEmailValue(profile.email);
+            setLoginValue(profile.username);
         }
-    }, [user]);
+    }, [profile]);
 
     // Отслеживание изменений
     useEffect(() => {
-        if (user) {
-            const emailChanged = emailValue !== user.email;
-            const loginChanged = loginValue !== user.username;
+        if (profile) {
+            const emailChanged = emailValue !== profile.email;
+            const loginChanged = loginValue !== profile.username;
             const passwordChanged = passwordValue !== '';
 
             setHasChanges(emailChanged || loginChanged || passwordChanged);
         }
-    }, [emailValue, loginValue, passwordValue, user]);
+    }, [emailValue, loginValue, passwordValue, profile]);
 
     // Обработка ошибок от API
     useEffect(() => {
@@ -115,11 +107,11 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
         }
         if (e.key === 'Escape') {
             // Отмена изменений
-            if (field === 'email' && user) {
-                setEmailValue(user.email);
+            if (field === 'email' && profile) {
+                setEmailValue(profile.email);
             }
-            if (field === 'login' && user) {
-                setLoginValue(user.username);
+            if (field === 'login' && profile) {
+                setLoginValue(profile.username);
             }
 
             setEditingField(null);
@@ -130,15 +122,15 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
 
     const handleBlur = (field: EditableField) => {
         // Возвращаем исходное значение, если поле пустое или невалидное
-        if (field === 'email' && user) {
+        if (field === 'email' && profile) {
             if (!emailValue || !validateEmailFormat(emailValue)) {
-                setEmailValue(user.email);
+                setEmailValue(profile.email);
                 setEmailFormatError(null);
             }
         }
-        if (field === 'login' && user) {
+        if (field === 'login' && profile) {
             if (!loginValue) {
-                setLoginValue(user.username);
+                setLoginValue(profile.username);
             }
         }
 
@@ -155,19 +147,15 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
 
         try {
             // Сохраняем email отдельно и проверяем ошибку
-            if (emailValue !== user?.email) {
+            if (emailValue !== profile?.email) {
                 await changeEmail(emailValue);
+                updateEmail(emailValue)
             }
 
             // Сохраняем логин отдельно и проверяем ошибку
-            if (loginValue !== user?.username) {
+            if (loginValue !== profile?.username) {
                 await changeUsername(loginValue);
-            }
-
-            // Обновляем данные пользователя
-            const updatedProfile = await getCurrentProfile();
-            if (updatedProfile) {
-                setProfile(updatedProfile);
+                updateUsername(loginValue)
             }
 
             setEditingField(null);
@@ -181,9 +169,9 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
 
     const handleCancel = () => {
         // Восстанавливаем исходные значения
-        if (user) {
-            setEmailValue(user.email);
-            setLoginValue(user.username);
+        if (profile) {
+            setEmailValue(profile.email);
+            setLoginValue(profile.username);
         }
         setPasswordValue('');
         setEditingField(null);
@@ -192,7 +180,7 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
         onCancel?.();
     };
 
-    if (!user) {
+    if (!profile) {
         return <LoadingSpinner />;
     }
 
@@ -237,7 +225,7 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
                 <div className="pb-4 border-b border-gray-100">
                     <label className="block text-sm font-medium text-gray-500 mb-1">
                         Email
-                        {!user.is_active && (
+                        {!profile.is_active && (
                             <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                 Не подтверждён
                             </span>
@@ -268,7 +256,7 @@ export const SettingsWidget = ({ onCancel, onSave }: SettingsWidgetProps) => {
                                 <div className="text-lg font-semibold text-gray-800">
                                     {emailValue}
                                 </div>
-                                {!user.is_active && (
+                                {!profile.is_active && (
                                     <p className="text-xs text-yellow-600 mt-1">
                                         Подтвердите email, чтобы активировать аккаунт
                                     </p>

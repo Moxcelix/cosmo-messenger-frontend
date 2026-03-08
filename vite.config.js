@@ -18,8 +18,8 @@ export default defineConfig({
     ],
     proxy: {
       '/api/v2/': {
-        //target: 'http://localhost:8080/',
-        target: 'https://cosmomessenger.ru/',
+        target: 'http://localhost:8080/',
+        //target: 'https://cosmomessenger.ru/',
         changeOrigin: true,
         secure: false,
       }

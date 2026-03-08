@@ -12,6 +12,7 @@ import { ChatsPage } from './pages/Chats.page'
 import { ProfilePage } from './pages/Profile.page'
 import { AuthProviderOld } from './context/AuthContextOld'
 import { AuthProvider } from './context/AuthContext'
+import { ProfileProvider } from './context/ProfileContext'
 import { ActivationPage } from './pages/Activation.page'
 import { SettingsPage } from './pages/Settings.page'
 
@@ -20,25 +21,27 @@ function App() {
 
     <BrowserRouter>
       <AuthProvider>
-        <AuthProviderOld>
-          <Routes>
+        <ProfileProvider>
+          <AuthProviderOld>
+            <Routes>
 
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/chats" element={<ChatList />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/chat/:chatId" element={<ChatPage />} />
-            <Route path="/chat/direct/:username" element={<DirectChatPage />} />
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/chats" element={<ChatList />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/chat/:chatId" element={<ChatPage />} />
+              <Route path="/chat/direct/:username" element={<DirectChatPage />} />
 
-            <Route path="/new/login" element={<LoginPage />} />
-            <Route path="/new/register" element={<RegisterPage />} />
-            <Route path="/new/chats" element={<ChatsPage />} />
-            <Route path="/new/profile/:username" element={<ProfilePage />} />
-            <Route path="/new/activate" element={<ActivationPage />} />
-            <Route path="/new/settings" element={<SettingsPage />} />
+              <Route path="/new/login" element={<LoginPage />} />
+              <Route path="/new/register" element={<RegisterPage />} />
+              <Route path="/new/chats" element={<ChatsPage />} />
+              <Route path="/new/profile/:username" element={<ProfilePage />} />
+              <Route path="/new/activate" element={<ActivationPage />} />
+              <Route path="/new/settings" element={<SettingsPage />} />
 
-          </Routes>
-        </AuthProviderOld>
+            </Routes>
+          </AuthProviderOld>
+        </ProfileProvider>
       </AuthProvider>
 
     </BrowserRouter>
