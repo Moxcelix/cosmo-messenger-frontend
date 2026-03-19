@@ -32,3 +32,9 @@ export interface User{
     display_name: string
     avatar_url: string
 }
+
+export interface Collection{
+    users: Map<string, User>
+    chats: Map<string, Chat>
+    messages: Map<string, Message>
+}
