@@ -48,16 +48,21 @@ export const UserProfile = ({ username, onLogout, onEmailResent }: UserAccountPr
     const [displayNameValue, setDisplayNameValue] = useState('');
     const [saveError, setSaveError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isMine, setIsMine] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const loading = authLoading || userLoading || logoutLoading || (profileLoading && !profile);
 
-    const isMine = authorized && profile?.user_id === user?.id;
+    useEffect(()=>{
+        setIsMine(authorized && profile?.user_id === user?.id)
+    }, [authLoading])
 
     useEffect(() => {
         const loadData = async () => {
             try {
+                setProfile(null)
+
                 if (username) {
                     const profileData = await getUserProfile(username);
                     setProfile(profileData)

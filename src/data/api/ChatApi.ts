@@ -6,7 +6,7 @@ import { formatError } from "../../utils/formatError";
 const BASE_URL = '/api/v2/chat'
 
 export class ChatApi implements ChatService {
-    async getChatHistory(jwt: string, cursor: string, direction: string, limit: number): Promise<Collection> {
+    async getChatsHistory(jwt: string, cursor: string, direction: string, limit: number): Promise<Collection> {
         const response = await fetch(`${BASE_URL}/history?cursor=${cursor}&direction=${direction}&limit=${limit}`, {
             method: 'GET',
             headers: {
@@ -37,7 +37,7 @@ export class ChatApi implements ChatService {
 
         return await response.json();
     }
-    
+
     async getDirectMessages(jwt: string, username: string, cursor: string, direction: string, limit: number): Promise<Collection> {
         const response = await fetch(`${BASE_URL}/direct/${username}/messages?cursor=${cursor}&direction=${direction}&limit=${limit}`, {
             method: 'GET',

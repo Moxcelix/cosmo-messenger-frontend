@@ -1,7 +1,7 @@
 import React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuthOld } from '../context/AuthContextOld'
-import { useChat } from '../hooks/useChat'
+import { useChat } from '../hooks/useChatOld'
 import ProtectedRoute from './ProtectedRoute'
 import ChatLayout from '../components/ChatLayout'
 import SpacePattern from '../components/SpacePattern';

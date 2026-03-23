@@ -7,9 +7,9 @@ interface LayoutProps {
 
 export const NavigationLayout = ({ children }: LayoutProps) => {
     return (
-        <div>
+        <div className="w-full h-full overflow-hidden">
             <NavigationPanel />
-            <main className="pt-16">
+            <main className="h-full overflow-hidden pt-16">
                 {children}
             </main>
         </div>

@@ -15,7 +15,9 @@ export const SettingsPage = () => {
             <div className={styles.baseContainer}>
                 <NavigationLayout>
                     <NavigationPanel />
-                    <SettingsWidget />
+                    <div className='p-12'>
+                        <SettingsWidget />
+                    </div>
                 </NavigationLayout>
             </div>
         </div>

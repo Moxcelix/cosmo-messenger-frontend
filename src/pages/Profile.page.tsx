@@ -17,9 +17,11 @@ export const ProfilePage = () => {
             <div className={styles.baseContainer}>
                 <NavigationLayout>
                     <NavigationPanel />
-                    <UserProfile 
-                        username={username} 
-                    />
+                    <div className='p-12'>
+                        <UserProfile
+                            username={username}
+                        />
+                    </div>
                 </NavigationLayout>
             </div>
         </div>

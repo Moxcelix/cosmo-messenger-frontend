@@ -1,0 +1,5 @@
+.inverted-scroll {
+    display: flex;
+    flex-direction: column-reverse;
+    overflow-y: auto;
+}

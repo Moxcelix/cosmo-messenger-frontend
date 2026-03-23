@@ -6,12 +6,15 @@ import { SocialService } from '../types/services/SocialService';
 import { SocialApi } from '../data/api/SocialApi';
 import { FileService } from '../types/services/FileService';
 import { FileApi } from '../data/api/FileApi';
+import { ChatService } from '../types/services/ChatService';
+import { ChatApi } from '../data/api/ChatApi';
 
 export interface Services {
     authService: AuthService;
     authStorage: AuthLocalStorage;
     socialService: SocialService;
     fileService: FileService;
+    chatService: ChatService;
 }
 
 const ServicesContext = createContext<Services | undefined>(undefined);
@@ -36,6 +39,7 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({ children }) 
         authStorage: new AuthLocalStorage(),
         socialService: new SocialApi(),
         fileService: new FileApi(),
+        chatService: new ChatApi(),
     }), []);
 
     return (

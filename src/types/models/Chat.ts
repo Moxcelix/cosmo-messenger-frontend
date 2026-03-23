@@ -33,8 +33,10 @@ export interface User{
     avatar_url: string
 }
 
-export interface Collection{
-    users: Map<string, User>
-    chats: Map<string, Chat>
-    messages: Map<string, Message>
+export interface Collection {
+    users: Record<string, User>;
+    chats: Record<string, Chat>;
+    messages: Record<string, Message>;
+    has_next: boolean;
+    has_prev: boolean;
 }
